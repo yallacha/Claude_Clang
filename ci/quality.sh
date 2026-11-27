@@ -18,7 +18,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 2
 REPORTS="${REPORTS_DIR:-build/reports}"
 SCRIPTS=".claude/skills/unit-test/scripts"
-export EXTRA_FLAGS="${EXTRA_FLAGS:--Iinclude -Isrc}"
+export EXTRA_FLAGS="${EXTRA_FLAGS:--Iinclude -Isrc -Itests/common -DECL_TEST_BUILD}"
 
 SRC_FILES="$(find src -type f -name '*.c' 2>/dev/null | sort | tr '\n' ' ')"
 FAILED=0
