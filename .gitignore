@@ -7,3 +7,6 @@
 .env
 docker/jenkins/.env
 .claude/settings.local.json
+
+# OEM 원문(교육용, 서면 공개 승인 증거 제출 전까지 저장소에 포함하지 않음: docs/decisions.md DEC-005)
+/OEM/

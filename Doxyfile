@@ -1,0 +1,22 @@
+# Doxygen 설정 (최소 설정). 실행: docker run ... claudeclangbuild:latest doxygen Doxyfile
+PROJECT_NAME           = "Electronic Child Lock Control SW"
+OUTPUT_DIRECTORY       = build/doxygen
+INPUT                  = src include
+FILE_PATTERNS          = *.c *.h
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_AS_ERROR          = NO
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+# Human-in-the-Loop 커스텀 태그 (CLAUDE.md 2장). 값은 태그 뒤 텍스트로 기술한다.
+ALIASES += "tracing=\par Tracing^^"
+ALIASES += "authored_by=\par AI Authored By^^"
+ALIASES += "authored_at=\par AI Authored At^^"
+ALIASES += "requested_by=\par Requested By^^"
+ALIASES += "review_status=\par Human Review Status^^"
+ALIASES += "reviewed_by=\par Reviewed By^^"
+ALIASES += "reviewed_at=\par Reviewed At^^"

@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-This repository (`Claude_Clang`, remote `https://github.com/yallacha/Claude_Clang.git`) currently holds no product source code; only the process (skills, agents), build image, CI and hook infrastructure exist. Production code is **C** (`src/*.c`, headers in `include/` or `src/`), tests are **C++ with Google Test/GMock** (`tests/{tdd,unit,integration,system}/`).
+This repository (`Claude_Clang`, remote `https://github.com/yallacha/Claude_Clang.git`, public) develops the **electronic child lock control SW** (rear left/right) specified by the OEM input `OEM/OEM-SWR-001_OEM SW 요구사항 사양서.docx` (educational virtual OEM-A project; no compliance/certification claims; the source docx lives only locally in `OEM/` and is git-ignored until written redistribution approval is stored in `docs/approvals/`, see `docs/decisions.md` DEC-005). Production code is **C11** (`src/*.c`, headers in `include/` or `src/`; language fixed by the user), tests are **C++ with Google Test/GMock** (`tests/{tdd,unit,integration,system}/`).
+
+Development status and documents (iteration 0 = requirements): `docs/SRS.md` (functional/non-functional, `SRQ-*`), `docs/safety-requirements.md` (ASIL B inputs, `SSR-*`), `docs/open-issues.md` (OEM ambiguities and the working assumptions `OI-*` — read before designing; e.g. arbitration priority OI-006), `docs/traceability.md` (the traceability matrix; system-test Excel references its IDs), `docs/reviews/` (reviewer records). Assumptions in `open-issues.md` are user-approved (DEC-003) until the OEM answers; requirement IDs are immutable from SRS v0.2 (DEC-004).
 
 Common commands (run inside the build image on the host, see section 4):
 ```
@@ -74,7 +76,7 @@ Run a single gtest case: build with `.claude/skills/unit-test/scripts/coverage.s
  *   @reviewed_at    2026-11-28      (미완료 시 -)
  */
 ```
-- 위 태그는 커스텀 태그이므로 Doxyfile의 `ALIASES`에 등록한다. (Doxyfile은 아직 없음 — 첫 소스 작성 시 함께 만든다)
+- 위 태그는 커스텀 태그이므로 Doxyfile의 `ALIASES`에 등록한다. (루트 `Doxyfile`에 등록 완료, `@tracing` 포함. 실행: 이미지 안에서 `doxygen Doxyfile`, 출력 `build/doxygen`)
 - 사용자가 리뷰하기 전에는 `Not Reviewed`로 두고, **사용자가 리뷰를 완료했다고 알려줄 때만** `Reviewed`로 바꾼다. 임의로 바꾸지 않는다.
 - 사람이 코드를 수정하면 해당 주석의 리뷰 상태를 `Not Reviewed`로 되돌린다.
 - 단위/통합 테스트 함수 주석(목적·입력값·절차·예상 출력값)은 각 테스트 스킬의 규칙을 따른다.
