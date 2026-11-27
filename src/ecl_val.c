@@ -153,7 +153,9 @@ static int check_other_signals(const ecl_snapshot_t *snap, ecl_validity_t validi
 }
 
 /**
- * @brief  STALE 여부를 판정한다: source_timestamp_s INVALID, 스냅샷 지연 0.200 s 초과, 틱에서는 마지막 수신 이후 경과도 0.200 s 초과.
+ * @brief  STALE 여부를 판정한다: source_timestamp_s INVALID(SSR-029) 또는 timestamp_s − source_timestamp_s가 0.200 s 초과.
+ * 틱은 마지막 스냅샷의 source_timestamp_s를 재사용하므로 같은 규칙이 "마지막 수신 후 경과 0.200 s 초과"(SSR-008)를 포함한다
+ * (source_timestamp_s <= 수신 시각이므로 경과 기준이 더 늦게 성립하는 일이 없다).
  * @tracing SSR-007, SSR-008, SSR-029
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
@@ -162,8 +164,7 @@ static int check_other_signals(const ecl_snapshot_t *snap, ecl_validity_t validi
  * @reviewed_by   -
  * @reviewed_at   -
  */
-static int judge_stale(const ecl_val_t *val, const ecl_snapshot_t *snap, const ecl_validity_t validity[ECL_SIG_COUNT],
-                       int is_tick)
+static int judge_stale(const ecl_snapshot_t *snap, const ecl_validity_t validity[ECL_SIG_COUNT])
 {
     int stale = 0;
     double limit = ECL_STALE_LIMIT_S + ECL_TIME_EPS_S;
@@ -171,8 +172,6 @@ static int judge_stale(const ecl_val_t *val, const ecl_snapshot_t *snap, const e
     if (validity[ECL_SIG_SRC_TS] == ECL_INVALID) {
         stale = 1;
     } else if ((snap->timestamp_s - snap->source_timestamp_s) > limit) {
-        stale = 1;
-    } else if ((is_tick != 0) && (val->rx_valid != 0) && ((snap->timestamp_s - val->last_rx_s) > limit)) {
         stale = 1;
     } else {
         stale = 0;
@@ -362,14 +361,14 @@ static ecl_reason_t derive_hold(const ecl_inputs_t *in, int pending_hold)
  * @reviewed_by   -
  * @reviewed_at   -
  */
-static int build_inputs(ecl_val_t *val, const ecl_snapshot_t *snap, int is_tick, ecl_inputs_t *out)
+static int build_inputs(ecl_val_t *val, const ecl_snapshot_t *snap, ecl_inputs_t *out)
 {
     int pending_hold = 0;
 
     (void)memset(out, 0, sizeof(*out));
     (void)check_bool_signals(snap, out->validity);
     (void)check_other_signals(snap, out->validity);
-    out->stale = judge_stale(val, snap, out->validity, is_tick);
+    out->stale = judge_stale(snap, out->validity);
     out->substituted = has_substitution(out->validity);
     if (out->stale != 0) {
         (void)mark_stale(out->validity);
@@ -402,7 +401,7 @@ ecl_ret_t ecl_val_condition(ecl_val_t *val, const ecl_snapshot_t *snap, ecl_inpu
     if ((val == NULL) || (snap == NULL) || (out == NULL)) {
         ret = RET_ERR_NULL;
     } else {
-        (void)build_inputs(val, snap, 0, out);
+        (void)build_inputs(val, snap, out);
         val->rx_valid = 1;
         val->last_rx_s = snap->timestamp_s;
         val->last_snap = *snap;
@@ -422,7 +421,7 @@ ecl_ret_t ecl_val_condition_tick(ecl_val_t *val, double now_s, ecl_inputs_t *out
     } else if (val->rx_valid != 0) {
         snap = val->last_snap;
         snap.timestamp_s = now_s;
-        (void)build_inputs(val, &snap, 1, out);
+        (void)build_inputs(val, &snap, out);
     } else {
         (void)memset(out, 0, sizeof(*out));
         out->stale = ((now_s - val->last_rx_s) > (ECL_STALE_LIMIT_S + ECL_TIME_EPS_S)) ? 1 : 0;

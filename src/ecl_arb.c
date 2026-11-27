@@ -22,7 +22,7 @@ typedef struct {
 } door_result_t;
 
 /**
- * @brief  이유코드의 우선순위 순위를 반환한다(범위 밖은 99).
+ * @brief  이유코드의 우선순위 순위를 반환한다(내부 호출만 있어 reason은 항상 유효 열거값).
  * @tracing SSR-027
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
@@ -33,13 +33,7 @@ typedef struct {
  */
 static int reason_rank(ecl_reason_t reason)
 {
-    int rank = 99;
-
-    if (((int)reason >= 0) && ((int)reason <= (int)RC_COMMAND_REJECTED)) {
-        rank = P_RANK[(int)reason];
-    }
-
-    return rank;
+    return P_RANK[(int)reason];
 }
 
 /**
