@@ -1,5 +1,5 @@
 # build outputs and reports
-build/
+/build/
 *.profraw
 *.profdata
 
