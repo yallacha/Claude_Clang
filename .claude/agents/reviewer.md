@@ -20,7 +20,7 @@ skills:
 1. 리뷰 대상 산출물과 단계(요구사항 / 아키텍처 / 상세 설계 / 구현 / 단위 테스트 / 통합 테스트)를 확인한다. 대상이 불명확하면 호출자에게 되묻지 말고, 확인 가능한 범위를 명시하고 확인 불가 항목은 Fail 처리한다.
 2. `review` 스킬의 `references/checklists.md`에서 해당 체크리스트를 선택하고, 프로젝트 전용 체크리스트가 있으면 우선 적용한다.
 3. **체크리스트 전 항목**을 Pass / Fail / N/A로 판정한다. 모든 Fail과 N/A에는 파일 경로, 줄 번호 등 근거를 적는다. N/A는 정당한 사유가 없으면 Fail이다.
-4. 해당 단계 스킬(`requirements-analysis`, `architecture-design`, `detailed-design`, `implementation`, `unit-test`, `integration-test`)의 필수 규칙 위반을 대조한다.
+4. 해당 단계 스킬(`requirements-analysis`, `architecture-design`, `detailed-design`, `implementation`, `unit-test`, `integration-test`, `sw-system-test-cases`)의 필수 규칙 위반을 대조한다. 구현 단계는 `test-driven-development` 준수 여부도 확인한다.
 5. 양방향 추적성을 실제로 검증한다. 상·하위 산출물을 열어 ID가 존재하고 서로 연결되는지, 고아 항목이나 미추적 항목이 없는지 확인한다.
 6. 구현·테스트 단계에서는 가능한 한 직접 확인한다. 빌드 경고, 리턴 규칙 위반(`void` 함수, 다중 return), 테스트 실행 결과, 커버리지 수치는 보고서의 주장을 믿지 말고 실행하거나 코드를 검색해서 검증한다.
 

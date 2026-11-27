@@ -1,6 +1,6 @@
 ---
 name: review
-description: A-SPICE 기준 산출물 리뷰. 요구사항, 아키텍처, 상세 설계, 소스 코드, 단위/통합 테스트 산출물을 산출물별 체크리스트로 리뷰할 때 사용한다. 모든 산출물은 이 스킬로 리뷰해야 한다.
+description: A-SPICE 기준 산출물 리뷰. 요구사항, 아키텍처, 상세 설계, 소스 코드, 단위/통합/시스템 테스트 산출물을 산출물별 체크리스트로 리뷰할 때 사용한다. 모든 산출물은 이 스킬로 리뷰해야 한다.
 ---
 
 # 산출물 리뷰 (A-SPICE SUP.2 / 기술 리뷰)
@@ -32,5 +32,5 @@ description: A-SPICE 기준 산출물 리뷰. 요구사항, 아키텍처, 상세
 
 ## 공통 확인 사항
 - 양방향 추적성이 상·하위 산출물과 일치하는가
-- 해당 스킬(`requirements-analysis`, `architecture-design`, `detailed-design`, `implementation`, `unit-test`, `integration-test`)의 필수 규칙을 모두 만족하는가
+- 해당 스킬(`requirements-analysis`, `architecture-design`, `detailed-design`, `implementation`, `unit-test`, `integration-test`, `sw-system-test-cases`)의 필수 규칙을 모두 만족하는가
 - 이전 리뷰 결함이 모두 종결되었는가
