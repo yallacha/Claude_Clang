@@ -1,6 +1,8 @@
 // 통합 테스트(SWE.5): 공개 API(ecl_core_*)를 통해 VAL/CMD/OVR/ARB/STA/LOG/SER 컴포넌트 연동을 검증한다.
-// 통합 전략: 하향식 — CMP-CORE 공개 인터페이스로 실제 컴포넌트를 모두 연결하여 시나리오 단위로 검증한다(Mock 없음).
-// 함수 커버리지 100% 목표, tests/integration 만으로 측정한다.
+// 통합 전략(하향식, Mock 없음): (1) 최상위 CMP-CORE 공개 인터페이스를 실제 하위 컴포넌트 전체와 연결한다.
+// (2) 단계 1: 시험 벡터 V 전체 재생으로 VAL→CMD→OVR→ARB→STA→CORE 데이터 흐름과 결정론을 확인한다.
+// (3) 단계 2: CORE↔LOG(이력 한도, ID 포화), CORE↔SER(오류 전파), VAL↔STA↔ARB(틱·STALE·PENDING 타임아웃) 시나리오로 인터페이스별 연동을 확인한다.
+// 컴포넌트를 하나씩 추가하는 상향식 단계는 두지 않았다: 각 컴포넌트가 순수 함수 또는 단일 컨텍스트라 CORE 연결 시 오류 원인 식별이 가능하다(근거).
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -73,7 +75,7 @@ ecl_snapshot_t to_snapshot(const Row &r)
     s.ignition_on = r.ign;
     s.sensor_fault = r.fault;
     if (r.side != kNoCmd) {
-        ecl_set_command(&s, r.side, r.action, r.source);
+        EXPECT_EQ(RET_OK, ecl_set_command(&s, r.side, r.action, r.source));
     }
     return s;
 }
@@ -219,7 +221,7 @@ TEST(CoreIntegration, EventCapacityHundredThroughCore)
     double t = 0.010;
     for (int i = 0; i < 101; i++) {
         ecl_snapshot_t s = ecl_normal_snapshot(t);
-        ecl_set_command(&s, ECL_SIDE_ALL, (i % 2 == 0) ? ECL_ACTION_LOCK : ECL_ACTION_UNLOCK, ECL_SRC_AVN);
+        EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, (i % 2 == 0) ? ECL_ACTION_LOCK : ECL_ACTION_UNLOCK, ECL_SRC_AVN));
         ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
         t += 0.010;
     }
@@ -249,12 +251,14 @@ TEST(CoreIntegration, EventCapacityHundredThroughCore)
 TEST(CoreIntegration, EventIdSaturationDoesNotStopControl)
 {
     ecl_core_t core = fresh_core();
-    ASSERT_EQ(RET_OK, ecl_log_test_set_counter(&core.log, UINT64_MAX - 1U));
+    ecl_log_t *log = nullptr;
+    ASSERT_EQ(RET_OK, ecl_core_test_get_log(&core, &log));
+    ASSERT_EQ(RET_OK, ecl_log_test_set_counter(log, UINT64_MAX - 1U));
     ecl_snapshot_t s = ecl_normal_snapshot(0.010);
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     s = ecl_normal_snapshot(0.020);
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_UNLOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_UNLOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     EXPECT_EQ(ECL_RELEASE, status_of(core).lock[0]);
     ecl_event_t ev[4] = {};
@@ -265,11 +269,11 @@ TEST(CoreIntegration, EventIdSaturationDoesNotStopControl)
 }
 
 /**
- * @brief   [목적] 틱 호출과 스냅샷 호출의 연동: 틱으로 STALE이 되었다가 새 스냅샷으로 복구된다(VAL↔STA↔ARB).
+ * @brief   [목적] 틱으로 STALE이 된 뒤 새 스냅샷이 마지막 수신 후 0.200 s를 넘겨 도착하면 그 평가도 STALE(SSR-008)이고, 다음 격자 스냅샷에서 복구된다.
  * @tracing SSR-008, SSR-009, SSR-010, SSR-034
- * @par Input   t=1.0 LOCK, tick 1.21, 스냅샷 1.22
- * @par Procedure  1. LOCK 평가 2. tick 3. 새 스냅샷
- * @par Expected   tick: DEGRADED, 출력 LOCK 유지(RC_INPUT_STALE). 복구: NORMAL
+ * @par Input   t=1.00 s LOCK, tick 1.21 s, 스냅샷 1.22 s, 스냅샷 1.23 s
+ * @par Procedure  1. LOCK 평가 2. tick 3. 스냅샷 2회
+ * @par Expected   tick 1.21: DEGRADED, LOCK 유지(RC_INPUT_STALE). 1.22(마지막 수신 후 0.22 s): DEGRADED. 1.23(0.01 s): NORMAL
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
  * @requested_by  Heechang Jang
@@ -281,7 +285,7 @@ TEST(CoreIntegration, TickStaleThenRecover)
 {
     ecl_core_t core = fresh_core();
     ecl_snapshot_t s = ecl_normal_snapshot(1.0);
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     ASSERT_EQ(RET_OK, ecl_core_tick(&core, 1.21));
     EXPECT_EQ(ECL_STATE_DEGRADED, status_of(core).state);
@@ -289,15 +293,18 @@ TEST(CoreIntegration, TickStaleThenRecover)
     EXPECT_EQ(RC_INPUT_STALE, status_of(core).reason_code);
     s = ecl_normal_snapshot(1.22);
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
+    EXPECT_EQ(ECL_STATE_DEGRADED, status_of(core).state);
+    s = ecl_normal_snapshot(1.23);
+    ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     EXPECT_EQ(ECL_STATE_NORMAL, status_of(core).state);
 }
 
 /**
- * @brief   [목적] 충돌 PENDING 1.0 s 유지 후 타임아웃에서 일반 중재로 복귀하며 타임아웃 코드를 한 번만 기록한다(VAL→ARB→LOG).
+ * @brief   [목적] 충돌 PENDING 1.0 s 유지 후 타임아웃에서 일반 중재로 복귀하며 타임아웃 코드를 한 번만 기록한다(VAL→ARB→LOG, 0.010 s 격자).
  * @tracing SSR-003, SSR-004, SSR-031, SSR-036
- * @par Input   LOCK 상태에서 crash=PENDING을 t=1.0..2.01
- * @par Procedure  1. LOCK 2. PENDING 입력 3. 경계 평가
- * @par Expected   t=2.0: LOCK 유지/RC_CRASH_PENDING_HOLD, t=2.01: RC_CRASH_PENDING_TIMEOUT(출력 LOCK), t=2.02: RC_NONE
+ * @par Input   LOCK 상태에서 crash=PENDING을 t=1.00 s부터 0.010 s 간격으로 2.01 s까지
+ * @par Procedure  1. LOCK 2. PENDING 입력 반복 3. 경계 평가
+ * @par Expected   2.00 s까지: LOCK 유지/RC_CRASH_PENDING_HOLD, 2.01 s: RC_CRASH_PENDING_TIMEOUT(출력 LOCK), 2.02 s: RC_NONE
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
  * @requested_by  Heechang Jang
@@ -308,15 +315,19 @@ TEST(CoreIntegration, TickStaleThenRecover)
 TEST(CoreIntegration, PendingTimeoutFlow)
 {
     ecl_core_t core = fresh_core();
-    ecl_snapshot_t s = ecl_normal_snapshot(0.5);
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    ecl_snapshot_t s = ecl_normal_snapshot(0.99);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
-    const double times[3] = {1.0, 2.0, 2.01};
-    for (int i = 0; i < 3; i++) {
-        s = ecl_normal_snapshot(times[i]);
+    for (int i = 0; i <= 100; i++) {
+        s = ecl_normal_snapshot(1.0 + 0.010 * i);
         s.crash_status = ECL_CRASH_PENDING;
         ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
+        EXPECT_EQ(RC_CRASH_PENDING_HOLD, status_of(core).reason_code) << i;
+        EXPECT_EQ(ECL_LOCK, status_of(core).lock[0]) << i;
     }
+    s = ecl_normal_snapshot(2.01);
+    s.crash_status = ECL_CRASH_PENDING;
+    ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     EXPECT_EQ(RC_CRASH_PENDING_TIMEOUT, status_of(core).reason_code);
     EXPECT_EQ(ECL_LOCK, status_of(core).lock[0]);
     s = ecl_normal_snapshot(2.02);

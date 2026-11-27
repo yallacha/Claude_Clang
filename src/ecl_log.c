@@ -3,28 +3,18 @@
  * @brief   이벤트 기록 컴포넌트(CMP-LOG) 구현 (고정 크기 순환 버퍼, 동적 할당 없음).
  * @tracing SRQ-FUN-027, SRQ-FUN-028, SRQ-FUN-030, SRQ-FUN-037, SRQ-FUN-039, SRQ-LIM-001, SRQ-LIM-003
  *
- * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
- * @authored_at   2026-11-27
- * @requested_by  Heechang Jang
- * @review_status Not Reviewed
- * @reviewed_by   -
- * @reviewed_at   -
+ * @@HITL@@
  */
 #include "ecl_log.h"
 
 #include <string.h>
 
 /**
- * @brief  이벤트를 버퍼에 저장한다(가득 차면 가장 오래된 것을 덮어쓴다).
+ * @brief  이벤트를 저장할 버퍼 인덱스를 정한다(가득 차면 가장 오래된 것을 덮어쓰도록 head를 전진).
  * @tracing SRQ-LIM-003
- * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
- * @authored_at   2026-11-27
- * @requested_by  Heechang Jang
- * @review_status Not Reviewed
- * @reviewed_by   -
- * @reviewed_at   -
+ * @@HITL@@
  */
-static int store_event(ecl_log_t *log, const ecl_event_t *event, uint64_t id)
+static size_t claim_slot(ecl_log_t *log)
 {
     size_t idx = 0U;
 
@@ -35,12 +25,15 @@ static int store_event(ecl_log_t *log, const ecl_event_t *event, uint64_t id)
         idx = log->head;
         log->head = (log->head + 1U) % ECL_EVENT_CAPACITY;
     }
-    log->events[idx] = *event;
-    log->events[idx].event_id = id;
 
-    return 0;
+    return idx;
 }
 
+/**
+ * @brief  이력을 비운다.
+ * @tracing SRQ-FUN-028, SRQ-LIM-001
+ * @@HITL@@
+ */
 ecl_ret_t ecl_log_init(ecl_log_t *log)
 {
     ecl_ret_t ret = RET_OK;
@@ -55,6 +48,11 @@ ecl_ret_t ecl_log_init(ecl_log_t *log)
     return ret;
 }
 
+/**
+ * @brief  이벤트를 기록하고 ID를 부여한다. ID가 최댓값에 도달한 뒤에는 기록하지 않고 *assigned_id를 0으로 한다.
+ * @tracing SRQ-FUN-027, SRQ-FUN-028, SRQ-FUN-037, SRQ-LIM-001, SRQ-LIM-003
+ * @@HITL@@
+ */
 ecl_ret_t ecl_log_append(ecl_log_t *log, const ecl_event_t *event, uint64_t *assigned_id)
 {
     ecl_ret_t ret = RET_OK;
@@ -65,7 +63,9 @@ ecl_ret_t ecl_log_append(ecl_log_t *log, const ecl_event_t *event, uint64_t *ass
         *assigned_id = 0U;
     } else {
         const uint64_t id = log->next_id;
-        (void)store_event(log, event, id);
+        const size_t idx = claim_slot(log);
+        log->events[idx] = *event;
+        log->events[idx].event_id = id;
         if (id == UINT64_MAX) {
             log->exhausted = 1;
         } else {
@@ -77,6 +77,11 @@ ecl_ret_t ecl_log_append(ecl_log_t *log, const ecl_event_t *event, uint64_t *ass
     return ret;
 }
 
+/**
+ * @brief  보존된 이벤트 중 최신 최대 capacity건을 event_id 오름차순으로 복사한다.
+ * @tracing SRQ-FUN-030, SRQ-LIM-003
+ * @@HITL@@
+ */
 ecl_ret_t ecl_log_query(const ecl_log_t *log, ecl_event_t *out, size_t capacity, size_t *count)
 {
     ecl_ret_t ret = RET_OK;
@@ -96,6 +101,11 @@ ecl_ret_t ecl_log_query(const ecl_log_t *log, ecl_event_t *out, size_t capacity,
 }
 
 #ifdef ECL_TEST_BUILD
+/**
+ * @brief  시험 빌드 전용: 다음 이벤트 ID가 value+1이 되도록 카운터를 설정한다.
+ * @tracing SRQ-FUN-039
+ * @@HITL@@
+ */
 ecl_ret_t ecl_log_test_set_counter(ecl_log_t *log, uint64_t value)
 {
     ecl_ret_t ret = RET_OK;

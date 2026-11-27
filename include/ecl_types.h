@@ -43,6 +43,28 @@ typedef enum {
 #define ECL_TIME_EPS_S (1e-9)
 #define ECL_DOOR_COUNT (2)
 #define ECL_SIG_COUNT (13)
+#define ECL_BOOL_SIG_COUNT (9)
+#define ECL_LOCK_NAME_COUNT (2)
+#define ECL_STATE_NAME_COUNT (4)
+#define ECL_VALIDITY_NAME_COUNT (3)
+#define ECL_REASON_COUNT (19)
+#define ECL_SER_KEY_MAX (40U)
+#define ECL_FLAG_SET (1)
+#define ECL_FLAG_CLEAR (0)
+
+/** 우선순위 표(SSR-027)의 순위. 값이 작을수록 높다. */
+#define ECL_RANK_P1 (1)
+#define ECL_RANK_P2 (2)
+#define ECL_RANK_P3 (3)
+#define ECL_RANK_P4 (4)
+#define ECL_RANK_P5 (5)
+#define ECL_RANK_P6 (6)
+#define ECL_RANK_P7 (7)
+#define ECL_RANK_P8 (8)
+#define ECL_RANK_P9 (9)
+#define ECL_RANK_P10 (10)
+#define ECL_RANK_P11 (11)
+#define ECL_RANK_NONE (99)
 
 typedef enum { ECL_RELEASE = 0, ECL_LOCK = 1 } ecl_lock_t;
 typedef enum { ECL_STATE_OFF = 0, ECL_STATE_NORMAL, ECL_STATE_DEGRADED, ECL_STATE_FAULT } ecl_state_t;

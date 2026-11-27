@@ -138,7 +138,7 @@ ecl_snapshot_t to_snapshot(const CsvRow &r)
     s.ignition_on = r.ign;
     s.sensor_fault = r.fault;
     if (r.has_cmd != 0) {
-        ecl_set_command(&s, r.side, r.action, r.source);
+        EXPECT_EQ(RET_OK, ecl_set_command(&s, r.side, r.action, r.source));
     }
     return s;
 }
@@ -238,7 +238,7 @@ TEST(SystemSpecial, TcF015EventHistory)
     for (int i = 2; i <= 101; i++) {
         t += 0.010;
         s = ecl_normal_snapshot(t);
-        ecl_set_command(&s, ECL_SIDE_ALL, (i % 2 == 0) ? ECL_ACTION_LOCK : ECL_ACTION_UNLOCK, ECL_SRC_AVN);
+        EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, (i % 2 == 0) ? ECL_ACTION_LOCK : ECL_ACTION_UNLOCK, ECL_SRC_AVN));
         ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
         if (i == 99) {
             EXPECT_EQ(99U, count_events(core, ev, ECL_EVENT_CAPACITY));
@@ -284,12 +284,14 @@ TEST(SystemSpecial, TcF016EventIdSaturation)
 {
     ecl_core_t core;
     ASSERT_EQ(RET_OK, ecl_core_init(&core));
-    ASSERT_EQ(RET_OK, ecl_log_test_set_counter(&core.log, UINT64_MAX - 1U));
+    ecl_log_t *log = nullptr;
+    ASSERT_EQ(RET_OK, ecl_core_test_get_log(&core, &log));
+    ASSERT_EQ(RET_OK, ecl_log_test_set_counter(log, UINT64_MAX - 1U));
     ecl_snapshot_t s = ecl_normal_snapshot(0.010);
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     s = ecl_normal_snapshot(0.020);
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_UNLOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_UNLOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     ecl_status_t st = {};
     ASSERT_EQ(RET_OK, ecl_core_get_status(&core, &st));
@@ -399,4 +401,36 @@ TEST(SystemSpecial, TcNf003NullArgumentsOnPublicApi)
     EXPECT_EQ('x', buf[0]);
     EXPECT_EQ(77U, n);
     EXPECT_EQ(0x5A5A5A5A, static_cast<int>(*reinterpret_cast<const unsigned int *>(&st)));
+}
+
+/**
+ * @brief   [목적] 결정론 시험이 쓰는 SHA-256 구현이 FIPS 180-4 표준 벡터(빈 문자열, "abc", 448비트 메시지, 백만 개의 'a')와 일치한다.
+ * @tracing SRQ-QUA-FUN-001
+ * @par Input   "", "abc", "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", 'a' × 1,000,000
+ * @par Procedure  1. 각 입력의 SHA-256을 계산한다. 2. 표준 값과 비교한다.
+ * @par Expected   e3b0c442..., ba7816bf..., 248d6a61..., cdc76e5c... (FIPS 180-4 / NIST 예제 값)
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
+ */
+TEST(SystemSpecial, Sha256MatchesFipsKnownAnswers)
+{
+    Sha256 empty;
+    EXPECT_EQ("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", empty.hex());
+    Sha256 abc;
+    abc.update("abc", 3);
+    EXPECT_EQ("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", abc.hex());
+    Sha256 two_block;
+    const std::string m = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
+    two_block.update(m.data(), m.size());
+    EXPECT_EQ("248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1", two_block.hex());
+    Sha256 million;
+    const std::string chunk(1000, 'a');
+    for (int i = 0; i < 1000; i++) {
+        million.update(chunk.data(), chunk.size());
+    }
+    EXPECT_EQ("cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0", million.hex());
 }

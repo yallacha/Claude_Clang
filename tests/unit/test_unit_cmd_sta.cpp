@@ -21,7 +21,7 @@ ecl_cmd_result_t interpret(int present, int side, int action, int source)
 
 /**
  * @brief   [목적] 모든 필드가 등록 범위이면 명령을 유효로 판정한다.
- * @tracing SRQ-FUN-001, ecl_cmd_interpret, SSR-034
+ * @tracing SRQ-FUN-001
  * @par Input   present=1, side=LEFT, action=LOCK, source=AVN
  * @par Procedure  1. 유효 필드로 ecl_cmd_interpret 호출.
  * @par Expected   valid=1, rejected=0, side/action/source가 입력과 같다.
@@ -132,11 +132,11 @@ TEST(CmdUnit, RejectsInvalidSource)
 }
 
 /**
- * @brief   [목적] 명령이 없으면(present=0) 수락도 거절도 아니다. present가 0/1이 아니어도 명령 없음으로 본다.
+ * @brief   [목적] 명령이 없으면(present=0) 수락도 거절도 아니고, present가 0/1이 아닌 값이면 형식 오류로 거절한다(DEC-011).
  * @tracing SRQ-FUN-007
- * @par Input   present = 0, 2
- * @par Procedure  1. 유효 필드와 함께 호출한다.
- * @par Expected   present=0, valid=0, rejected=0
+ * @par Input   present = 0 / 2, -1 (나머지 필드 유효)
+ * @par Procedure  1. 각 값으로 호출한다.
+ * @par Expected   present=0: present=0, valid=0, rejected=0. present=2/-1: present=1, valid=0, rejected=1
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
  * @requested_by  Heechang Jang
@@ -146,12 +146,16 @@ TEST(CmdUnit, RejectsInvalidSource)
  */
 TEST(CmdUnit, AbsentCommandIsNeitherValidNorRejected)
 {
-    const int values[2] = {0, 2};
+    const ecl_cmd_result_t none = interpret(0, ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(0, none.present);
+    EXPECT_EQ(0, none.valid);
+    EXPECT_EQ(0, none.rejected);
+    const int bad[2] = {2, -1};
     for (int i = 0; i < 2; i++) {
-        const ecl_cmd_result_t r = interpret(values[i], ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN);
-        EXPECT_EQ(0, r.present);
+        const ecl_cmd_result_t r = interpret(bad[i], ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN);
+        EXPECT_EQ(1, r.present);
         EXPECT_EQ(0, r.valid);
-        EXPECT_EQ(0, r.rejected);
+        EXPECT_EQ(1, r.rejected);
     }
 }
 
@@ -178,7 +182,7 @@ TEST(CmdUnit, NullArgumentsReturnErrNull)
 
 /**
  * @brief   [목적] state 우선순위 FAULT > DEGRADED > OFF > NORMAL을 조건표대로 결정한다.
- * @tracing SSR-028, SSR-030, SSR-018, SSR-026, SRQ-FUN-015
+ * @tracing SSR-028, SSR-030, SSR-018, SSR-026, SRQ-FUN-015, SSR-034
  * @par Input   sensor_fault / stale / substituted / ignition_off 조합
  * @par Procedure  1. 조건 조합을 설정하고 ecl_sta_decide 호출.
  * @par Expected   fault→FAULT, stale→DEGRADED, substituted→DEGRADED, ignition_off→OFF, 없음→NORMAL, fault+off→FAULT

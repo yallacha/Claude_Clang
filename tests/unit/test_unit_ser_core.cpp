@@ -230,15 +230,15 @@ TEST(CoreUnit, EventRecordedExactlyOnChange)
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));      // 변화 없음
     EXPECT_EQ(1U, event_count(core));
     s = ecl_normal_snapshot(0.030);
-    ecl_set_command(&s, ECL_SIDE_RIGHT, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_RIGHT, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));      // RIGHT만 LOCK + reason 변화
     EXPECT_EQ(2U, event_count(core));
     s = ecl_normal_snapshot(0.040);
-    ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));      // LEFT만 LOCK (reason 동일)
     EXPECT_EQ(3U, event_count(core));
     s = ecl_normal_snapshot(0.050);
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));      // 변화 없음(이미 LOCK, reason 동일)
     EXPECT_EQ(3U, event_count(core));
 }
@@ -269,7 +269,7 @@ TEST(CoreUnit, StateOnlyAndReasonOnlyChanges)
     EXPECT_EQ(2U, event_count(core));
     s = ecl_normal_snapshot(0.030);
     s.fire_detected = 9;
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_UNLOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_UNLOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     EXPECT_EQ(RC_DRIVER_UNLOCK, status_of(core).reason_code);
     EXPECT_EQ(3U, event_count(core));
@@ -295,7 +295,7 @@ TEST(CoreUnit, RejectedCommandAlwaysRecorded)
     ecl_snapshot_t s = ecl_normal_snapshot(0.010);
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     s = ecl_normal_snapshot(0.020);
-    ecl_set_command(&s, 3, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, 3, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     EXPECT_EQ(RC_COMMAND_REJECTED, status_of(core).reason_code);
     EXPECT_EQ(1, status_of(core).command_rejected);
@@ -322,7 +322,7 @@ TEST(CoreUnit, CrashReleaseAndOverrideReporting)
 {
     ecl_core_t core = fresh_core();
     ecl_snapshot_t s = ecl_normal_snapshot(0.010);
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     EXPECT_EQ(ECL_LOCK, status_of(core).lock[0]);
     s = ecl_normal_snapshot(0.020);
@@ -331,12 +331,12 @@ TEST(CoreUnit, CrashReleaseAndOverrideReporting)
     EXPECT_EQ(ECL_RELEASE, status_of(core).lock[0]);
     s = ecl_normal_snapshot(0.030);
     s.crash_status = ECL_CRASH_CONFIRMED;
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     EXPECT_EQ(ECL_RELEASE, status_of(core).lock[1]);
     s = ecl_normal_snapshot(0.040);
     s.rear_left_approach_risk = 1;
-    ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_UNLOCK, ECL_SRC_VOICE);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_UNLOCK, ECL_SRC_VOICE));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     EXPECT_EQ(RC_APPROACH_RISK, status_of(core).reason_code);
     s.timestamp_s = s.source_timestamp_s = 0.050;
@@ -447,11 +447,11 @@ TEST(CoreUnit, RightOutputOnlyChangeIsRecorded)
     ecl_snapshot_t s = ecl_normal_snapshot(0.010);
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     s = ecl_normal_snapshot(0.020);
-    ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     ASSERT_EQ(2U, event_count(core));
     s = ecl_normal_snapshot(0.030);
-    ecl_set_command(&s, ECL_SIDE_RIGHT, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_RIGHT, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     EXPECT_EQ(3U, event_count(core));
     EXPECT_EQ(ECL_LOCK, status_of(core).lock[ECL_DOOR_RIGHT]);
@@ -478,7 +478,7 @@ TEST(CoreUnit, EventContainsDefinedFields)
     s = ecl_normal_snapshot(0.020);
     s.vehicle_speed_kph = -1.0;
     s.command.present = 0;
-    ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN));
     s.vehicle_speed_kph = 0.0;
     s.adult_present = 9;
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));

@@ -38,18 +38,19 @@
 
 ### 3.1 ecl_val (CMP-VAL)
 
-내부 상태 `ecl_val_t`(private): `rx_valid`, `last_rx_s`, `pending_active`, `pending_start_s`, `pending_reported`, `last_inputs`(틱용, `ecl_inputs_t`).
+내부 상태 `ecl_val_t`(비공개 관례): `rx_valid`, `last_rx_s`, `pending_active`, `pending_start_s`, `pending_reported`, `last_snap`(마지막 수신 스냅샷, 틱 재사용용).
 
 | 함수 | 종류 | 설계 |
 |---|---|---|
-| `ecl_val_init` | 공개 | 모든 상태를 0으로, `last_rx_s`=0.0, `rx_valid`=0, `last_inputs`를 "입력 없음"(모든 효과값 0, validity VALID, hold_reason RC_NONE)으로 설정. NULL→`RET_ERR_NULL` |
-| `ecl_val_condition` | 공개 | `check_signals` → `judge_stale` → `apply_substitution` → `track_pending` → `derive_hold` → 상태 갱신(`last_rx_s`=시각, `rx_valid`=1, `last_inputs`=결과의 명령 제거 복사) |
-| `ecl_val_condition_tick` | 공개 | `rx_valid`가 0이면 `now_s − 0.0`, 아니면 `now_s − last_rx_s`가 0.200 초과일 때만 `stale`로 판정하고, 이전 `last_inputs`에 `stale`/hold만 갱신하여 반환(명령 없음). `last_rx_s`는 바꾸지 않음 |
-| `check_signals` | static | 신호별 규칙(SSR-005 표)을 적용하여 `validity[]`(VALID/INVALID)를 채운다. 헬퍼: `is_bool(v)`(v==0\|\|v==1), `in_enum(v,lo,hi)`, `speed_ok(v)`(!isnan && 0.0≤v≤300.0), `src_ts_ok(src, now)`(유한 && 0≤src≤now). 신호 13종을 `validate_bool_signals`(booleans 9종)와 `validate_other_signals`(speed, gear, crash, src_ts)로 나누어 CCN을 낮춘다 |
-| `judge_stale` | static | `stale = (src_ts INVALID(SSR-029)) \|\| (now − src_ts > 0.200+eps) \|\| (rx_valid && now − last_rx_s > 0.200+eps)`. STALE이면 VALID였던 신호를 STALE로 바꾼다(INVALID는 유지) |
-| `apply_substitution` | static | SSR-020~025: approach/isofix/sensor_fault INVALID→1, speed INVALID→`speed_moving`=1, fire/overtemp/adult INVALID→0, crash/ignition INVALID은 별도 `hold_invalid` 플래그(내부)로 표시. VALID 신호만 값을 효과값으로 복사하고 STALE 신호의 효과값은 0(미사용). `speed_moving` = 속도 VALID && v ≥ 3.0 \|\| 속도 INVALID. `ignition_off` = ignition VALID && ==0. `crash_confirmed` = crash VALID && CONFIRMED. `substituted` = INVALID 신호 존재 |
-| `track_pending` | static | crash가 VALID이고 PENDING이면: 시작 안 됐으면 `pending_start_s`=now, `pending_active`=1, `pending_reported`=0. `elapsed = now − pending_start_s`. `pending_hold` = elapsed ≤ 1.0+eps. 초과 && !`pending_reported`이면 `pending_timeout_first`=1, `pending_reported`=1. crash가 VALID이고 PENDING이 아니면 시작 상태 초기화. INVALID/STALE이면 유지 |
-| `derive_hold` | static | `hold_reason` 결정: sensor_fault → `RC_SENSOR_FAULT`; 아니면 pending_hold → `RC_CRASH_PENDING_HOLD`; 아니면 stale → `RC_INPUT_STALE`; 아니면 hold_invalid → `RC_INPUT_INVALID`; 그 외 `RC_NONE`. 단 crash_confirmed이면 hold_reason은 계산하되 ARB가 P1을 먼저 적용한다 |
+| `ecl_val_init` | 공개 | 모든 상태를 0으로 설정. NULL→`RET_ERR_NULL` |
+| `ecl_val_condition` | 공개 | `build_inputs` 후 `rx_valid`=1, `last_rx_s`=스냅샷 시각, `last_snap`=스냅샷(명령 제외) |
+| `ecl_val_condition_tick` | 공개 | 수신 이력이 있으면 `last_snap`을 시각만 `now_s`로 바꾸고 **수신 당시의 지연(timestamp_s − source_timestamp_s)을 유지**하도록 `source_timestamp_s`를 조정해 `build_inputs`로 재조건화한다(명령 없음). 수신 이력이 없으면 입력 없음 상태로 `now_s − 0.0 > 0.200`일 때만 STALE로 한다 |
+| `build_inputs` | static | `check_bool_signals` → `check_other_signals` → `evaluate_staleness` → `apply_substitution` → `track_pending` → `derive_hold` 순으로 `ecl_inputs_t`를 채우고 `ecl_ret_t`로 결과를 전파한다 |
+| `check_bool_signals`, `check_other_signals` | static | SSR-005 표로 `validity[]`를 채우고 INVALID 개수를 누적한다(기어는 대체 대상이 아니므로 개수에서 제외, SSR-026). 헬퍼 `is_bool`, `in_enum`, `speed_ok`, `src_ts_ok` |
+| `evaluate_staleness` | static | STALE = source_timestamp_s INVALID(SSR-029) 또는 `timestamp_s − source_timestamp_s > 0.200+eps`(SSR-007) 또는 `rx_valid && timestamp_s − last_rx_s > 0.200+eps`(SSR-008: 스냅샷이 있는 호출과 틱 모두에 적용, 따라서 0.200 s를 넘겨 도착한 스냅샷도 STALE). STALE이면 VALID였던 신호를 STALE로 바꾸고 판정값을 반환한다 |
+| `apply_substitution` | static | 효과 값 계산: approach는 VALID/STALE이면 입력 값 그대로, INVALID이면 TRUE(SSR-011, 020); isofix, sensor_fault는 INVALID→TRUE(SSR-021, 022); fire, overtemp, adult는 INVALID와 STALE→0(SSR-025); speed는 INVALID→이동(SSR-023); ignition_off, crash_confirmed는 VALID일 때만. 헬퍼 `bool_effective`, `approach_effective` |
+| `track_pending` | static | PENDING 지속 시간 추적: 시작 기록, `elapsed ≤ 1.0+eps`이면 유지, 초과의 첫 판정에서 `pending_timeout_first`. 다른 유효 crash 값이면 초기화, INVALID/STALE이면 상태 유지 |
+| `derive_hold` | static | `hold_reason`: sensor_fault > PENDING 유지 > STALE > crash/ignition INVALID > 없음 |
 
 ### 3.2 ecl_cmd (CMP-CMD)
 
@@ -75,18 +76,17 @@
 
 | 함수 | 설계 |
 |---|---|
-| `ecl_arb_decide`(공개) | NULL 검사 → `crash_confirmed`이면 `decide_crash`; 아니면 도어별 `decide_door`(0, 1) → `merge_reason` → 거절 보조 코드 `apply_reject` |
-| `decide_crash`(static) | lock[0..1]=RELEASE, reason=`RC_CRASH_CONFIRMED`, rejected=cmd.rejected |
+| `ecl_arb_decide`(공개) | NULL 검사 → `crash_confirmed`이면 두 도어 RELEASE/`RC_CRASH_CONFIRMED`(P1), 아니면 `decide_both` → 거절 보조 코드(`command_rejected`이고 reason이 `RC_NONE`이면 `RC_COMMAND_REJECTED`, P11) |
+| `decide_both`(static) | `decide_door`를 좌·우에 적용하고 `merge_reason`으로 이유코드를 병합한다 |
 | `decide_door`(static) | `hold_reason != RC_NONE`이면 `decide_hold`, 아니면 `decide_rules` |
-| `decide_hold`(static) | `approach[d]` → LOCK이고 reason=hold_reason; 그 외 lock=prev[d], reason=hold_reason (SSR-011, 003, 010, 017, 024) |
-| `decide_rules`(static) | P5~P10 순차 판정(첫 번째 성립 규칙이 선택). P5: approach → LOCK, reason = `ovr->ack[d]`? `RC_OVERRIDE_ACK` : `RC_APPROACH_RISK`. P6: (fire\|\|overtemp\|\|adult) → RELEASE, reason = `fire_reason`. P7: isofix → LOCK `RC_ISOFIX`. P8: speed_moving → LOCK, reason = 유효 unlock 명령이 있으면 `RC_UNLOCK_DENIED_MOVING` 아니면 `RC_SPEED_AUTO_LOCK`. P9: ignition_off → RELEASE `RC_IGNITION_OFF`. P10: `driver_applies(cmd, d)` → 명령 action에 따라 LOCK/`RC_DRIVER_LOCK` 또는 RELEASE/`RC_DRIVER_UNLOCK`. 없음: lock=prev[d], reason=`RC_NONE`. 마지막에 `pending_timeout_first`이면 reason을 `RC_CRASH_PENDING_TIMEOUT`으로 덮어쓴다(P4 > P5~P10) |
-| `fire_reason`(static) | fire → `RC_FIRE`; overtemp → `RC_OVERTEMP`; adult → `RC_ADULT_PRESENT` (SRQ-FUN-032 순서) |
-| `driver_applies`(static) | `cmd.valid && (side==ALL \|\| side==door)` |
-| `merge_reason`(static) | 두 도어 reason 중 `P_RANK`가 작은 쪽, 같으면 enum 값이 작은 쪽 |
-| `apply_reject`(static) | `cmd.rejected`이면 `command_rejected`=1이고 reason이 `RC_NONE`일 때 `RC_COMMAND_REJECTED` |
-| `reason_rank`(static) | `P_RANK[reason]`(범위 밖 값은 99) |
+| `decide_hold`(static) | P2~P4: 접근위험 도어는 LOCK, 그 외 `prev`, reason=`hold_reason` |
+| `decide_rules`(static) | P5~P9는 `apply_input_rules`, 성립하지 않으면 P10 `apply_driver`, 아무 규칙도 없으면 `prev`/`RC_NONE`. `pending_timeout_first`이면 reason을 `RC_CRASH_PENDING_TIMEOUT`(P4)으로 덮어쓴다 |
+| `apply_input_rules`(static) | 접근위험(`ovr->ack`이면 `RC_OVERRIDE_ACK`) → 화재/과온/성인(`fire_reason`) → ISOFIX → 이동(`speed_reason`) → 시동 OFF 순서로 첫 성립 규칙을 적용 |
+| `apply_driver`(static) | `driver_applies`이면 lock→LOCK/`RC_DRIVER_LOCK`, unlock→RELEASE/`RC_DRIVER_UNLOCK` |
+| `driver_applies`, `speed_reason`, `fire_reason`(static) | 명령의 도어 적용 판정 / 이동 중 이유코드(유효 unlock이면 `RC_UNLOCK_DENIED_MOVING`) / fire > overtemp > adult |
+| `merge_reason`, `reason_rank`(static) | 순위가 높은(작은) 코드, 같으면 값이 작은 코드. 순위는 `P_RANK[]`(`ECL_RANK_P1`~`P11`, `ECL_RANK_NONE`) |
 
-`P_RANK`: CRASH_CONFIRMED=1, SENSOR_FAULT=2, CRASH_PENDING_HOLD=3, CRASH_PENDING_TIMEOUT=4, INPUT_STALE=4, INPUT_INVALID=4, APPROACH_RISK=5, OVERRIDE_ACK=5, FIRE=6, OVERTEMP=6, ADULT_PRESENT=6, ISOFIX=7, SPEED_AUTO_LOCK=8, UNLOCK_DENIED_MOVING=8, IGNITION_OFF=9, DRIVER_LOCK=10, DRIVER_UNLOCK=10, COMMAND_REJECTED=11, NONE=99.
+(`decide_crash`, `apply_reject`는 위 구조로 통합하여 별도 함수가 없다.)
 
 ### 3.5 ecl_sta (CMP-STA)
 
@@ -102,7 +102,7 @@
 
 ### 3.7 ecl_ser (CMP-SER)
 
-고정 순서 문자열 생성(SAD §4.8). 지역 버퍼 `tmp[640]`에 `append_pair(tmp, &pos, name, value)`로 `name=value;`를 이어 붙이고, 전체 길이+1이 `capacity` 이하이면 `memcpy`하고 `*length`=길이, 아니면 `RET_ERR_SERIALIZE`(`buf` 불변). 필드: `lock_left`, `lock_right`, `state`, `reason_code`, `override_left`, `override_right`, `command_rejected`, `validity_speed`, `validity_gear`, `validity_source_ts`, `validity_crash`, `validity_approach_left`, `validity_approach_right`, `validity_fire`, `validity_overtemp`, `validity_adult`, `validity_isofix_left`, `validity_isofix_right`, `validity_ignition`, `validity_sensor_fault`. 문자열 표는 `static const char *const`. 열거값이 표 범위 밖이면 `"?"`.
+고정 순서 문자열 생성(SAD §4.8). 먼저 `buf`가 NULL인 쓰기 상태(`ser_writer_t`)로 **건식 실행하여 길이를 계산**하고, `길이+1 > capacity`이면 `RET_ERR_SERIALIZE`(버퍼 불변), 아니면 같은 `write_all`을 `buf`에 실제로 쓴다(`write_pair`가 `name=value;`를 쓰고 길이를 누적). 필드 순서: `lock_left`, `lock_right`, `state`, `reason_code`, `override_left`, `override_right`, `command_rejected`, 이어서 신호 13종의 `validity_<신호>`(speed, gear, source_ts, crash, approach_left, approach_right, fire, overtemp, adult, isofix_left, isofix_right, ignition, sensor_fault). 이름 표는 `static const char *const`이며 크기는 `ecl_types.h`의 `ECL_*_COUNT` 상수다. 열거값이 표 범위 밖이면 `"?"`.
 
 ### 3.8 ecl_core (CMP-CORE)
 
@@ -146,6 +146,10 @@
 | SRQ-FUN-022, 029, SRQ-CON-003, 006, 007 | CMP-TYP | ecl_types.h | 구조체 정의 |
 
 ## 6. 설계상 가정 (구현에서 유지)
-1. STALE일 때 입력 효과값은 모두 0이며 직전 출력(접근위험 도어는 직전 값)을 유지한다. STALE 중에는 접근위험 TRUE 도어 LOCK을 새로 만들 수 없다(직전 출력이 LOCK이면 유지). 이 한계는 `OI-004`, `OI-013`에 포함된다.
-2. 틱 호출은 새 스냅샷이 없으면 마지막 스냅샷의 조건화 결과를 재사용하며 명령은 없다.
-3. 시간 비교 허용 오차 `ECL_TIME_EPS_S`=1e-9 s는 부동소수점 표현 오차 흡수용이며 요구사항 경계(0.200, 1.0, 10.0)는 이 오차 안에서 포함/초과를 판정한다.
+1. STALE일 때 효과 값은 접근위험(입력 값 그대로)을 제외하고 모두 0이며, 출력은 직전 확정 출력을 유지하되 **접근위험 TRUE 도어는 LOCK**이다(SSR-011). STALE 중 접근위험 FALSE 입력은 최신 값으로 믿을 수 없으나 새 LOCK 근거가 없으므로 직전 출력을 유지한다.
+2. 틱은 새 스냅샷이 없을 때 마지막 스냅샷의 조건화 결과를 재사용하며 명령은 없다. STALE 판정은 마지막 수신 평가 이후 경과(SSR-008)이다. 스냅샷이 있는 호출도 마지막 수신 후 0.200 s를 넘겨 도착하면 STALE이며(SSR-008의 "스냅샷이 없는 호출 포함" 해석), 다음 평가(0.010 s 후)에서 복구된다.
+3. 시간 비교 허용 오차 `ECL_TIME_EPS_S`=1e-9 s는 부동소수점 표현 오차 흡수용이며 경계(0.200, 1.0, 10.0)는 이 오차 안에서 포함/초과를 판정한다(SRS "시각 비교 규칙").
+4. `ecl_cmd_interpret`는 `present`가 0이면 명령 없음, 1이면 필드 검사, 그 밖의 값은 형식 오류로 거절한다(DEC-011).
+5. 모듈 내부 함수가 `ecl_ret_t`를 반환하고 호출자가 `RET_OK`를 확인해 전파하는 것은 방어적 설계이며, 현재 내부 호출은 NULL이 아닌 인자만 받으므로 오류 분기는 도달하지 않는다(단위 시험은 분기가 아닌 MC/DC 대상 조건으로 측정).
+6. 컨텍스트 구조체의 필드는 비공개 관례이며 시험은 `ecl_core_test_get_log`(시험 빌드 전용)로만 하위 컨텍스트에 접근한다. 제품 빌드에는 시험용 접근자가 없다(INS: `ci/inspection.sh` SRQ-FUN-039).
+7. `door_requested`(OVR)와 `driver_applies`(ARB)는 판정 대상이 다르다(전자는 unlock만, 후자는 lock/unlock 모두). 같은 `cmd` 구조를 읽지만 책임이 달라 공통화하지 않았다.

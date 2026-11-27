@@ -98,7 +98,7 @@ ecl_ret_t ecl_val_condition_tick(ecl_val_t *val, double now_s, ecl_inputs_t *out
 |---|---|
 | 제공 | 위 3개 함수 |
 | 요구 | 없음(`ecl_types.h`만 사용) |
-| `ecl_inputs_t` 출력 | 입력 13종의 `validity[]`, 대체 후 유효 값(`speed_moving`, `crash`, `approach[2]`, `isofix[2]`, `fire`, `overtemp`, `adult`, `ignition_on`, `sensor_fault`), `stale`(STALE 판정 여부), `invalid_substituted`(SSR-020~025, 029로 대체된 입력 존재), `crash_invalid_or_ignition_invalid`(P4 유지 조건), `pending_hold`(PENDING ≤ 1.0 s), `pending_timeout_first`(1.0 s 초과를 처음 판정한 평가), `driver_command`(원 명령 복사) |
+| `ecl_inputs_t` 출력 | 입력 13종의 `validity[]`, 대체 후 유효 값(`speed_moving`, `crash`, `approach[2]`, `isofix[2]`, `fire`, `overtemp`, `adult`, `ignition_on`, `sensor_fault`), `stale`(STALE 판정 여부), `substituted`(SSR-020~025, 029로 대체된 입력 존재), `hold_reason`(P2~P4 유지 조건의 이유코드), `pending_timeout_first`(1.0 s 초과를 처음 판정한 평가), `command`(원 명령 복사) |
 | 사전 조건 | `ecl_val_init` 호출 후. `now_s`는 단조 비감소(감소 시 마지막 수신 시각 대비 음수 간격은 0으로 간주) |
 | 사후 조건 | `RET_OK`이면 `out`이 모든 필드로 채워진다. `ecl_val_condition`은 `snap->timestamp_s`를 평가 시각으로 사용한다 |
 | 타이밍 | O(1) |
@@ -123,7 +123,7 @@ ecl_ret_t ecl_ovr_update(ecl_ovr_t *ovr, double now_s, const ecl_inputs_t *in, c
 ```
 | 항목 | 내용 |
 |---|---|
-| `ecl_ovr_result_t` | `suppress_unlock[2]`(도어별 해제 억제 대상), `override[2]`(override 상태), `override_ack`(이번 평가에서 override 판정) |
+| `ecl_ovr_result_t` | `suppress[2]`(도어별 해제 억제 대상), `override[2]`(override 상태), `ack[2]`(이번 평가에서 도어별 override 판정) |
 | 동작 | 접근위험 TRUE인 도어에 유효한 unlock 명령이 오면 해제를 억제하고, 첫 억제 시각이 없으면 기록한다. 같은 도어·같은 source의 unlock이 첫 억제 시각부터 ≤ 10.0 s이면 override로 판정한다. 접근위험이 FALSE가 되면 기록 삭제, override 상태는 해소 또는 10.0 s 초과 시 FALSE(SRQ-FUN-034). 10.0 s 초과 재입력은 새 첫 억제 시각을 기록(SRQ-FUN-035) |
 | 사전/사후 | `ecl_ovr_init` 후. 사후: `out`이 채워진다 |
 | 오류 | NULL → `RET_ERR_NULL` |
@@ -163,7 +163,7 @@ ecl_ret_t ecl_log_test_set_counter(ecl_log_t *log, uint64_t value);  /* 시험 �
 ```c
 ecl_ret_t ecl_ser_status(const ecl_status_t *status, char *buf, size_t capacity, size_t *length);
 ```
-형식: `lock_left=LOCK;lock_right=RELEASE;state=NORMAL;reason_code=RC_NONE;override_left=0;...input_validity.speed=VALID;...;command_rejected=0;` (필드 순서는 상세 설계에서 고정). `capacity`가 필요 길이+1보다 작으면 `RET_ERR_SERIALIZE`(버퍼 변경 안 함). NULL → `RET_ERR_NULL`. 순수 함수.
+형식: `lock_left=LOCK;lock_right=RELEASE;state=NORMAL;reason_code=RC_NONE;override_left=0;override_right=0;command_rejected=0;validity_speed=VALID;...;validity_sensor_fault=VALID;` (필드 순서는 상세 설계 §3.7이 정의하며 이 문서는 형식 예만 둔다). `capacity`가 필요 길이+1보다 작으면 `RET_ERR_SERIALIZE`(버퍼 변경 안 함). NULL → `RET_ERR_NULL`. 순수 함수.
 
 ### 4.9 CMP-CORE (공개 API)
 

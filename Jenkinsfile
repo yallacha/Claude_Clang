@@ -50,6 +50,9 @@ pipeline {
         stage('System tests (Requirement coverage 100%)') {
             steps { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { sh 'ci/quality.sh system' } }
         }
+        stage('Inspection (INS/BLD)') {
+            steps { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { sh 'ci/quality.sh inspect' } }
+        }
         stage('CLOC') {
             steps { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { sh 'ci/quality.sh cloc' } }
         }

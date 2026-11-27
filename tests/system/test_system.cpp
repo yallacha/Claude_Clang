@@ -54,7 +54,7 @@ ecl_snapshot_t make_snapshot(const StStep &s)
     snap.ignition_on = s.ign;
     snap.sensor_fault = s.fault;
     if (s.cs != -2) {
-        ecl_set_command(&snap, s.cs, s.ca, s.cx);
+        EXPECT_EQ(RET_OK, ecl_set_command(&snap, s.cs, s.ca, s.cx));
     }
     return snap;
 }
@@ -96,8 +96,20 @@ TEST(SystemTest, AllGeneratedCasesPass)
         ecl_core_t core;
         ASSERT_EQ(RET_OK, ecl_core_init(&core)) << c.id;
         expect_status(core, c.initial, std::string(c.id) + " initial");
+        const StStep *prev = nullptr;
         for (size_t i = 0; i < c.count; i++) {
             const StStep &s = c.steps[i];
+            if ((prev != nullptr) && (prev->tick == 0) && (s.tick == 0)) {
+                // 호출 계약(0.010 s 격자): 단계 사이에 시간 공백이 있으면 직전 입력(명령 제외)을 0.010 s 간격으로 반복 주입한다.
+                for (int k = 1; prev->t + 0.010 * k < s.t - 0.005; k++) {
+                    StStep filler = *prev;
+                    filler.t = prev->t + 0.010 * k;
+                    filler.cs = -2;
+                    const ecl_snapshot_t fill_snap = make_snapshot(filler);
+                    ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &fill_snap)) << c.id << " fill before step " << i + 1;
+                }
+            }
+            prev = &s;
             if (s.tick != 0) {
                 ASSERT_EQ(RET_OK, ecl_core_tick(&core, s.t)) << c.id << " step " << i + 1;
             } else {

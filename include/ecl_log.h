@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-/** LOG 컨텍스트. 모든 필드는 private이다. */
+/** LOG 컨텍스트. 필드는 비공개 관례이며 아래 함수로만 접근한다. */
 typedef struct {
     ecl_event_t events[ECL_EVENT_CAPACITY];
     size_t head;

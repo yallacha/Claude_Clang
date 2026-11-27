@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 소스코드 품질 기준 검사 (CLAUDE.md 2장). 개발과 CI 모두 ClaudeCLangBuild 이미지 안에서 실행한다.
 #
-# 사용법: ci/quality.sh <cppcheck|lizard|cloc|tdd|unit|integration|system|all>
+# 사용법: ci/quality.sh <cppcheck|lizard|inspect|cloc|tdd|unit|integration|system|all>
 #   cppcheck     CppCheck 위반 0건 (억제 사용 금지)
 #   lizard       순환복잡도 10 이하, 함수 라인수 80 이하
 #   cloc         코드/주석 라인 집계 (주석률 보고)
@@ -54,6 +54,11 @@ step_lizard() {
     if lizard src -l c -C 10 -L 80 -w; then pass "lizard (CCN<=10, 라인<=80)"; else fail "lizard: 기준 초과 함수 있음"; fi
 }
 
+step_inspect() {
+    if ! has_src; then skip inspect "src/ 에 C 소스 없음"; return; fi
+    if ci/inspection.sh; then pass "inspect (INS/BLD 요구사항 검사)"; else fail "inspect: 검사 실패 (build/reports/inspect/inspect.txt)"; fi
+}
+
 step_cloc() {
     mkdir -p "$REPORTS/cloc"
     cloc src include tests --by-file --xml --out="$REPORTS/cloc/cloc.xml" 2>/dev/null \
@@ -86,16 +91,17 @@ case "${1:-all}" in
     cppcheck)    step_cppcheck ;;
     lizard)      step_lizard ;;
     cloc)        step_cloc ;;
+    inspect)     step_inspect ;;
     tdd)         gate_run tdd         coverage.sh tdd         -         ;;
     unit)        gate_run unit        mcdc.sh     unit        mcdc      ;;
     integration) gate_run integration coverage.sh integration functions ;;
     system)      gate_run system      coverage.sh system      -         ;;
-    all)         step_cppcheck; step_lizard; step_cloc
+    all)         step_cppcheck; step_lizard; step_inspect; step_cloc
                  gate_run tdd         coverage.sh tdd         -
                  gate_run unit        mcdc.sh     unit        mcdc
                  gate_run integration coverage.sh integration functions
                  gate_run system      coverage.sh system      - ;;
-    *) echo "사용법: $0 <cppcheck|lizard|cloc|tdd|unit|integration|system|all>" >&2; exit 2 ;;
+    *) echo "사용법: $0 <cppcheck|lizard|inspect|cloc|tdd|unit|integration|system|all>" >&2; exit 2 ;;
 esac
 
 exit "$FAILED"

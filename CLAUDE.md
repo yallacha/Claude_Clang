@@ -41,6 +41,8 @@ Run a single gtest case: build with `.claude/skills/unit-test/scripts/coverage.s
 
 모든 기준에 **예외는 없다.** 미달이면 이터레이션을 완료할 수 없다.
 
+- **적용 범위**: 아래 기준은 제품 코드(`src/*.c`)와 테스트 코드(`tests/`)에 적용한다. 개발·CI 보조 스크립트(`tools/`, `ci/`, `docker/`, `.claude/`)는 제품 코드가 아니므로 대상이 아니다. 표시 계층은 JavaScript 없이 C로 구현하므로 제품 코드에 포함된다(`docs/decisions.md` DEC-010, DEC-011).
+
 | 항목 | 기준 |
 |---|---|
 | 시스템 테스트 | 요구사항 커버리지 100% (`ci/check_system_coverage.py`: 검증 방법이 INS/BLD인 제약 SRQ-CON-*는 사유와 함께 제외, 테스트 가능한 요구사항 기준) |

@@ -26,7 +26,7 @@ ecl_val_t fresh_val()
 
 /**
  * @brief   [목적] NULL 인자에 RET_ERR_NULL을 반환한다(인자별 독립).
- * @tracing SRQ-QUA-REL-001, SSR-033, SSR-019, SSR-036, SSR-037
+ * @tracing SRQ-QUA-REL-001
  * @par Input   init/condition/tick의 각 인자를 nullptr
  * @par Procedure  1. 각 호출
  * @par Expected   RET_ERR_NULL
@@ -194,7 +194,7 @@ TEST(ValUnit, SourceTimestampRangeAndInvalidMeansStale)
 
 /**
  * @brief   [목적] freshness 경계: timestamp_s − source_timestamp_s가 0.200이면 fresh, 0.210이면 STALE이며 STALE이면 VALID 신호가 STALE로 바뀐다.
- * @tracing SSR-007, SSR-006
+ * @tracing SSR-007, SSR-006, SSR-033
  * @par Input   t=1.0, src=0.8 (0.200) / src=0.79 (0.210)
  * @par Procedure  1. condition
  * @par Expected   0.200: stale=0, validity VALID. 0.210: stale=1, validity STALE, hold_reason=RC_INPUT_STALE
@@ -385,11 +385,11 @@ TEST(ValUnit, StaleInputsAreNotReflected)
 }
 
 /**
- * @brief   [목적] PENDING 추적: 1.000 s까지 유지, 1.010 s에서 타임아웃을 한 번만 알리고, 다른 crash 값이 오면 초기화한다.
+ * @brief   [목적] PENDING 추적: 1.000 s까지 유지, 1.010 s에서 타임아웃을 한 번만 알리고, 다른 crash 값이 오면 초기화한다(호출 계약 0.010 s 격자).
  * @tracing SSR-003, SSR-004, SSR-031
- * @par Input   t=1.0 PENDING 시작, 2.0(1.000 s), 2.01(1.010 s), 2.02, NONE, 다시 PENDING
- * @par Procedure  1. 순차 condition
- * @par Expected   2.0: hold=RC_CRASH_PENDING_HOLD. 2.01: hold=NONE, timeout_first=1. 2.02: timeout_first=0. NONE 후 PENDING은 새로 시작
+ * @par Input   t=1.00 s부터 0.010 s 간격으로 PENDING 101회(2.00 s까지), 2.01 s, 2.02 s, NONE 2.03 s, 이후 PENDING 재시작
+ * @par Procedure  1. 순차 condition 2. 경계(2.00/2.01) 확인
+ * @par Expected   2.00 s까지 hold=RC_CRASH_PENDING_HOLD. 2.01 s: hold=NONE, timeout_first=1. 2.02 s: timeout_first=0. NONE 후 PENDING은 새로 시작
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
  * @requested_by  Heechang Jang
@@ -400,15 +400,15 @@ TEST(ValUnit, StaleInputsAreNotReflected)
 TEST(ValUnit, PendingHoldTimeoutOnceAndReset)
 {
     ecl_val_t v = fresh_val();
-    ecl_snapshot_t s = ecl_normal_snapshot(1.0);
-    s.crash_status = ECL_CRASH_PENDING;
-    EXPECT_EQ(RC_CRASH_PENDING_HOLD, condition(&v, s).hold_reason);
-    s = ecl_normal_snapshot(2.0);
-    s.crash_status = ECL_CRASH_PENDING;
-    ecl_inputs_t in = condition(&v, s);
-    EXPECT_EQ(RC_CRASH_PENDING_HOLD, in.hold_reason);
-    EXPECT_EQ(0, in.pending_timeout_first);
-    s = ecl_normal_snapshot(2.01);
+    ecl_inputs_t in = {};
+    for (int i = 0; i <= 100; i++) {
+        ecl_snapshot_t s = ecl_normal_snapshot(1.0 + 0.010 * i);
+        s.crash_status = ECL_CRASH_PENDING;
+        in = condition(&v, s);
+        EXPECT_EQ(RC_CRASH_PENDING_HOLD, in.hold_reason) << i;
+        EXPECT_EQ(0, in.pending_timeout_first) << i;
+    }
+    ecl_snapshot_t s = ecl_normal_snapshot(2.01);
     s.crash_status = ECL_CRASH_PENDING;
     in = condition(&v, s);
     EXPECT_EQ(RC_NONE, in.hold_reason);
@@ -418,7 +418,7 @@ TEST(ValUnit, PendingHoldTimeoutOnceAndReset)
     EXPECT_EQ(0, condition(&v, s).pending_timeout_first);
     s = ecl_normal_snapshot(2.03);
     EXPECT_EQ(RC_NONE, condition(&v, s).hold_reason);
-    s = ecl_normal_snapshot(3.0);
+    s = ecl_normal_snapshot(2.04);
     s.crash_status = ECL_CRASH_PENDING;
     in = condition(&v, s);
     EXPECT_EQ(RC_CRASH_PENDING_HOLD, in.hold_reason);
@@ -426,11 +426,11 @@ TEST(ValUnit, PendingHoldTimeoutOnceAndReset)
 }
 
 /**
- * @brief   [목적] crash가 INVALID/STALE인 동안에는 PENDING 추적 상태를 바꾸지 않는다.
+ * @brief   [목적] crash가 INVALID인 동안에는 PENDING 추적 상태를 바꾸지 않아 INVALID 구간이 끼어도 PENDING 시작 시각이 유지된다.
  * @tracing SSR-004
- * @par Input   PENDING 시작 후 crash=INVALID 입력, 다시 PENDING
- * @par Procedure  1. t=1.0 PENDING 2. t=1.5 crash=9 3. t=2.01 PENDING
- * @par Expected   t=2.01에서 시작 시각이 유지되어 타임아웃 판정(timeout_first=1)
+ * @par Input   t=1.00 s PENDING 시작, 1.01~1.50 s crash=9(INVALID), 1.51~2.01 s PENDING (0.010 s 격자)
+ * @par Procedure  1. 순차 condition
+ * @par Expected   INVALID 구간 hold=RC_INPUT_INVALID. 2.01 s에서 시작 시각이 유지되어 timeout_first=1
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
  * @requested_by  Heechang Jang
@@ -444,17 +444,23 @@ TEST(ValUnit, PendingStateKeptWhileCrashInvalid)
     ecl_snapshot_t s = ecl_normal_snapshot(1.0);
     s.crash_status = ECL_CRASH_PENDING;
     (void)condition(&v, s);
-    s = ecl_normal_snapshot(1.5);
-    s.crash_status = 9;
-    EXPECT_EQ(RC_INPUT_INVALID, condition(&v, s).hold_reason);
-    s = ecl_normal_snapshot(2.01);
-    s.crash_status = ECL_CRASH_PENDING;
-    EXPECT_EQ(1, condition(&v, s).pending_timeout_first);
+    for (int i = 1; i <= 50; i++) {
+        s = ecl_normal_snapshot(1.0 + 0.010 * i);
+        s.crash_status = 9;
+        EXPECT_EQ(RC_INPUT_INVALID, condition(&v, s).hold_reason) << i;
+    }
+    ecl_inputs_t in = {};
+    for (int i = 51; i <= 101; i++) {
+        s = ecl_normal_snapshot(1.0 + 0.010 * i);
+        s.crash_status = ECL_CRASH_PENDING;
+        in = condition(&v, s);
+    }
+    EXPECT_EQ(1, in.pending_timeout_first);
 }
 
 /**
  * @brief   [목적] 유지 조건 이유코드 우선순위: sensor_fault > PENDING > STALE > crash/ignition INVALID.
- * @tracing SSR-027
+ * @tracing SSR-027, SSR-019, SSR-036, SSR-037
  * @par Input   조건 조합
  * @par Procedure  1. condition
  * @par Expected   조합별 hold_reason이 우선순위대로
@@ -503,7 +509,7 @@ TEST(ValUnit, TickReusesLastSnapshotAndGoesStale)
     ecl_snapshot_t s = ecl_normal_snapshot(1.0);
     ecl_inputs_t in = {};
     s.ignition_on = 0;
-    ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
     (void)condition(&v, s);
     ASSERT_EQ(RET_OK, ecl_val_condition_tick(&v, 1.2, &in));
     EXPECT_EQ(0, in.stale);

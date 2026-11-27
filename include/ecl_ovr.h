@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-/** OVR 컨텍스트. 모든 필드는 private이다. */
+/** OVR 컨텍스트. 필드는 비공개 관례이며 아래 함수로만 접근한다. */
 typedef struct {
     int first_valid[ECL_DOOR_COUNT];
     double first_s[ECL_DOOR_COUNT];

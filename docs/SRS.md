@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 ID / 버전 | SRS-ECL-001 / 0.4 (Draft, 재리뷰 대기, 변경 이력은 문서 끝) |
+| 문서 ID / 버전 | SRS-ECL-001 / 0.5 (Draft, 재리뷰 대기, 변경 이력은 문서 끝) |
 | 베이스라인 | BL-SWR-1.0 — 이터레이션 게이트에서 사용자가 승인할 때 부여(`docs/decisions.md` DEC-006) |
 | 입력(상위) 문서 | `OEM/OEM-SWR-001_OEM SW 요구사항 사양서.docx` (Rev 1.0, BL-OEM-1.0) — 저장소에는 포함하지 않는다(DEC-005) |
 | 프로세스 | A-SPICE SWE.1 (`requirements-analysis` 스킬) |
@@ -20,7 +20,7 @@
 
 **단위**: 시각과 기간은 초(s)로 쓴다(OEM 원문의 300 ms = 0.300 s, 200 ms = 0.200 s, 100 ms = 0.100 s, 10 ms = 0.010 s). 속도는 km/h.
 
-**시각 비교 규칙**: `timestamp_s`와 `source_timestamp_s`는 초 단위 실수(double)이다. 0.010 s 격자 값의 부동소수점 표현 오차로 경계 판정이 어긋나지 않도록, 한계값과의 비교는 허용오차 1e-9 s를 둔다. 시각 차이 ≤ 한계 + 1e-9 s이면 "한계 이하"(경계 포함)이고, 한계 + 1e-9 s를 넘으면 "초과"이다. 1e-9 s 이하의 차이를 구분하는 입력은 요구 범위 밖이다. 이 규칙은 0.200 s(SSR-007, 008), 1.0 s(SSR-004), 10.0 s(SRQ-FUN-017, 034, 035)의 경계 판정에 모두 적용하며, 경계 시험값은 이 표현(십진 리터럴의 double)으로 주입한다.
+**시각 비교 규칙**: `timestamp_s`와 `source_timestamp_s`는 초 단위 실수(double)이다. 0.010 s 격자 값의 부동소수점 표현 오차로 경계 판정이 어긋나지 않도록, 한계값과의 비교는 허용오차 1e-9 s를 둔다. 시각 차이 ≤ 한계 + 1e-9 s이면 "한계 이하"(경계 포함)이고, 한계 + 1e-9 s를 넘으면 "초과"이다. 1e-9 s 이하의 차이를 구분하는 입력은 요구 범위 밖이다. 이 규칙은 0.200 s(SSR-007, 008), 1.0 s(SSR-004), 10.0 s(SRQ-FUN-017, 034, 035)의 경계 판정에 모두 적용하며, 경계 시험값은 이 표현(십진 리터럴의 double)으로 주입한다. 이 허용오차는 호출자 계약 범위 0 ≤ `timestamp_s` ≤ 1e6 s(약 11.6일)에서 유효하다(double의 정밀도상 이 범위에서 0.010 s 격자 값의 표현 오차가 1e-9 s보다 훨씬 작다, `OI-003`).
 
 ## 0. 용어집
 
@@ -30,7 +30,7 @@
 | 스냅샷 | OEM-IF-001~003, 007~009 신호와 `source_timestamp_s`, 선택적 운전자 명령(IF-004)을 가진 입력 묶음. |
 | 평가주기 / 평가 | 0.010 s(`OI-003`). 평가 = 평가 호출 1회이며 같은 호출의 반환 시점에 출력·상태·이벤트를 확정한다. OEM의 "첫/다음 평가주기"는 입력을 처음 처리하는 평가이다. |
 | 필수 입력 | IF-001(vehicle_speed_kph, gear, source_timestamp_s), IF-002(crash_status), IF-003(두 접근위험), IF-007(fire, overtemperature, adult), IF-008(두 ISOFIX), IF-009(ignition_on, sensor_fault)의 모든 신호. |
-| 유효 / INVALID / STALE | 유효 = 형식·범위 검사(SSR-005) 통과 + fresh. INVALID = 형식·범위 위반 또는 누락. STALE = freshness 기준 초과(SSR-007, 008). 한 신호가 INVALID이면서 STALE 조건에도 해당하면 **INVALID가 우선**한다(STALE로 보고되는 것은 유효였던 신호뿐이다). |
+| 유효 / INVALID / STALE | 유효 = 형식·범위 검사(SSR-005) 통과 + fresh. INVALID = 형식·범위 위반 또는 누락. STALE = 평가가 SSR-007(스냅샷의 source_timestamp_s 경과 초과), SSR-008(마지막 스냅샷 수신 후 경과 초과), SSR-029(source_timestamp_s INVALID) 중 하나에 해당하는 상태이며, 신호별 freshness 정보가 없으므로(`OI-004`) 그 평가에서 유효였던 모든 신호가 STALE이다(단 crash_status의 CONFIRMED는 STALE이어도 SSR-001이 인정한다). 한 신호가 INVALID이면서 STALE 조건에도 해당하면 **INVALID가 우선**한다(STALE로 보고되는 것은 유효였던 신호뿐이다). |
 | 직전 확정 출력 | 직전 평가가 확정한 lock_left, lock_right. 첫 평가 전에는 RELEASE(SRQ-FUN-026). |
 | 정지 / 이동 | 정지 = 유효한 vehicle_speed_kph < 3.0. 이동 = 유효한 vehicle_speed_kph ≥ 3.0. (속도 INVALID는 SSR-023에 따라 이동으로 처리) |
 | 정상 입력 | 필수 입력이 모두 유효이고 ignition_on=TRUE, crash_status=NONE, sensor_fault=FALSE, 접근위험·ISOFIX·fire·overtemperature·adult가 모두 FALSE인 입력(속도와 운전자 명령은 시험이 지정). |
@@ -40,7 +40,7 @@
 | 적용 | 우선순위 표(SSR-027)에서 해당 규칙이 도어의 출력으로 선택됨. |
 | 같은 해제 명령 | 접근위험으로 해제가 억제된 도어를 side가 포함하고 action=unlock인 명령. source는 첫 억제 때와 같아야 한다(`OI-011`). |
 | 첫 억제 시각 | 도어별로 접근위험 TRUE 구간에서 해제가 처음 억제된 평가의 `timestamp_s`. 접근위험이 유효한 FALSE가 되면 삭제. |
-| PENDING 지속 | crash_status가 PENDING으로 처음 유효하게 입력된 평가의 `timestamp_s`부터 PENDING이 계속되는 기간. |
+| PENDING 지속 | crash_status가 PENDING으로 처음 유효하게 입력된 평가의 `timestamp_s`부터 PENDING이 계속되는 기간. crash_status가 STALE이거나 INVALID인 평가에서는 지속의 시작 시각과 진행을 중단하거나 초기화하지 않고 그대로 유지한다(그 평가에서는 지속을 판정하지 않는다). 유효한 NONE 또는 CONFIRMED가 입력되면 초기화한다. |
 | 공개 함수 | `include/` 헤더에 선언된 모든 함수. |
 | 이유코드(reason_code) | 부록 A의 열거값. OEM-IF-006의 `priority_reason`은 `reason_code`와 같은 값. |
 | 경고코드 | FAULT 상태에서 제공하는 이유코드 `RC_SENSOR_FAULT`. |
@@ -129,7 +129,7 @@
 |---|---|---|---|---|---|---|
 | SRQ-LIM-001 | SW는 이벤트를 프로세스 메모리에만 보존해야 한다. | 프로세스 재기동 후 이벤트 조회 결과가 0건. | OEM-NFR-002 | M/Draft | UT, IT, ST | OEM-NFR-002 |
 | SRQ-LIM-003 | SW는 이벤트가 100건을 넘으면 가장 오래된 1건을 삭제해야 한다. | 101번째 기록 후 보존 건수 100, 가장 오래된 ID가 2. | OEM-NFR-002 | M/Draft | UT, IT | OEM-NFR-002 |
-| SRQ-LIM-002 | SW는 SSR의 시간 규칙(0.200 s, 1.0 s, 10.0 s 경계)을 평가 호출 횟수가 아니라 호출자가 주입한 `timestamp_s`·`source_timestamp_s`의 차이로 판정해야 한다. 평가 호출이 0.010 s 간격으로 이루어진다는 호출 계약은 호출자의 책임이다(`OI-003`). | (1) INS: SW 소스에 호출 횟수를 세어 시간으로 환산하는 코드가 없고, 시간 규칙 판정에 쓰이는 값이 `timestamp_s`, `source_timestamp_s`와 그 저장값뿐이다(코드 검토). (2) ST: 호출 계약의 준수 확인 — SW 시험이 쓰는 벡터 V의 평가 호출 간격이 0.010 s(±1e-9 s)이다. 이는 시험 하네스가 계약을 지켰다는 전제 확인이며 SW의 합격 기준은 (1)이다. | 파생(OEM-SR-001 0.300 s, OEM-SR-003 0.100 s 충족), `OI-003` | H/Draft | INS, ST | OEM-SR-001, OEM-SR-003 |
+| SRQ-LIM-002 | SW는 SSR의 시간 규칙(0.200 s, 1.0 s, 10.0 s 경계)을 평가 호출 횟수가 아니라 호출자가 주입한 `timestamp_s`·`source_timestamp_s`의 차이로 판정해야 한다. 평가 호출이 0.010 s 간격으로 이루어진다는 호출 계약은 호출자의 책임이다(`OI-003`). | INS: SW 소스에 호출 횟수를 세어 시간으로 환산하는 코드가 없고, 시간 규칙 판정에 쓰이는 값이 `timestamp_s`, `source_timestamp_s`와 그 저장값뿐이다(코드 검토). | 파생(OEM-SR-001 0.300 s, OEM-SR-003 0.100 s 충족), `OI-003` | H/Draft | INS | OEM-SR-001, OEM-SR-003 |
 | SRQ-LIM-004 | SW는 평가 호출 1회를 0.010 s 미만에 완료해야 한다. | ST 시험 벡터 전체에서 최악 평가 시간이 0.010 s 미만. | 파생, `OI-003` | H/Draft | ST | OEM-SR-001, OEM-SR-003 |
 
 ### 2.3 제약사항 (Constraint)
@@ -139,14 +139,14 @@
 | SRQ-CON-001 | 제품 코어는 C 언어(C11)로 `src/`에 구현해야 한다. **가정: OEM 편차 확인 대기** | 사용자 확정 요구사항 변경(`docs/decisions.md` CR-001), OEM §3 실행 환경(Python 3.12)에서 변경, `OI-002` | H/Draft | BLD, INS | OEM §3 (변경) |
 | SRQ-CON-008 | 표시 계층 서버는 C 언어(C11)로 `src/`에 구현해야 한다. | CR-001, `OI-017` | M/Draft | BLD, INS | OEM §3 표시/조작 |
 | SRQ-CON-009 | 표시 계층은 HTML을 C 코드로 생성하여 응답하고 클라이언트 측 스크립트(JavaScript)를 포함하지 않아야 한다. | OEM §3 표시/조작, `OI-017`, DEC-007, DEC-010 | M/Draft | INS, ST(Web) | OEM §3 표시/조작 |
-
-**SRQ-CON-009 검사 절차와 합격 기준**: (1) INS — `src/`의 표시 계층 소스 외에 `.js`, `.html` 등 비-C 소스 파일이 저장소에 없고, 표시 계층 소스에 `<script`, `javascript:`, `on<이벤트>=` 속성(`onclick=` 등), 외부 스크립트 참조(`src=`가 스크립트를 가리키는 경우)를 만드는 문자열이 0건이다(대소문자 구분 없는 문자열 검색). (2) ST(Web) — 시험이 얻은 모든 응답 본문(정상, 거절, HTTP 500 응답 포함)에 같은 문자열이 0건이다. 두 검사 모두 0건이면 합격, 1건이라도 있으면 불합격이다.
 | SRQ-CON-002 | SW는 시각을 호출자가 주입한 `timestamp_s`로만 얻어야 한다. | OEM-NFR-001, OEM-IF-004(요청 시각 = 스냅샷 timestamp_s), `OI-003` | H/Draft | INS, UT | OEM-NFR-001, OEM-IF-004 |
 | SRQ-CON-005 | SW는 시스템 시계를 읽지 않아야 한다. | OEM-NFR-001(결정론) | H/Draft | INS | OEM-NFR-001 |
 | SRQ-CON-003 | SW는 영상, 음성 원본과 개인 식별자를 입력으로 받지 않아야 한다. | OEM §2 프로젝트 제약 | M/Draft | INS, UT | OEM-NFR-002 |
 | SRQ-CON-006 | SW는 영상, 음성 원본과 개인 식별자를 저장하지 않아야 한다. | OEM §2, OEM-NFR-002 | M/Draft | INS, UT | OEM-NFR-002 |
 | SRQ-CON-007 | SW는 성인 존재를 boolean 1개 필드로만 표현해야 한다. | OEM §2 | M/Draft | INS, UT | OEM-NFR-002 |
 | SRQ-CON-004 | SW는 도어 래치/구동기 HW를 직접 구동하지 않아야 한다. | OEM §3 제외/제한, OEM-IF-005 | M/Draft | INS | OEM-IF-005 |
+
+**SRQ-CON-009 검사 절차와 합격 기준**: 표시 계층은 제품 코드이며 `CLAUDE.md` 2장 품질 기준을 그대로 적용한다(보조 스크립트 `tools/`, `ci/` 등은 제품 코드가 아니며 범위 밖, DEC-011). (1) INS — 아래 두 검사가 모두 0건이어야 한다. ① `git ls-files`에서 확장자가 `.js`, `.mjs`, `.html`, `.htm`인 파일 0개. ② `src/`, `include/`에서 다음 정규식(대소문자 구분 없음)에 일치하는 줄 0건: `<script`, `javascript:`, `\bon[a-z]+\s*=`, `<[a-z]+[^>]*\bsrc\s*=[^>]*\.m?js`. (2) ST(Web) — 시험이 얻은 모든 응답 본문(정상, 거절, HTTP 500 응답 포함)에서 같은 정규식 일치 0건이다. 모두 0건이면 합격, 1건이라도 있으면 불합격이다.
 
 ## 3. 외부 인터페이스 매핑
 
@@ -173,7 +173,7 @@
 | RC_CRASH_CONFIRMED | 1 | crash_status=CONFIRMED | P1 |
 | RC_SENSOR_FAULT | 2 | sensor_fault TRUE 또는 INVALID(경고코드) | P2 |
 | RC_CRASH_PENDING_HOLD | 3 | crash_status=PENDING 유지(≤1.0 s) | P3 |
-| RC_CRASH_PENDING_TIMEOUT | 4 | PENDING 1.0 s 초과를 처음 판정한 평가 | P4 |
+| RC_CRASH_PENDING_TIMEOUT | 4 | PENDING 1.0 s 초과를 처음 판정한 평가 | 예외(위 설명, SSR-031) |
 | RC_INPUT_STALE | 5 | STALE | P4 |
 | RC_INPUT_INVALID | 6 | crash/ignition INVALID | P4 |
 | RC_FIRE | 7 | fire_detected TRUE | P6 |
@@ -202,3 +202,4 @@
 |---|---|---|
 | 0.3 | 2026-11-27 | 4차 재리뷰(requirements-review-004) 조치본 |
 | 0.4 | 2026-11-27 | 5차 재리뷰(requirements-review-005) 열린 결함 18건 조치: 시각 비교 규칙(허용오차 1e-9 s), INVALID/STALE 우선순위와 input_validity 대상, SRQ-FUN-009 전제, SRQ-FUN-027·037·039 정리(포화·시험 빌드), SRQ-LIM-002 주체 변경, SRQ-CON-009 검사 절차, 부록 A 예외, B-2 보강 (ID 변경 없음) |
+| 0.5 | 2026-11-27 | 6차 재리뷰(requirements-review-006) 조치(리뷰 재확인은 사용자 지시로 생략, DEC-011): STALE 원인 정의, PENDING 지속의 STALE·INVALID 구간 유지 규칙, 시각 상한(호출자 계약), SRQ-LIM-002에서 시험 하네스 전제 분리(검증 INS), SRQ-CON-009 검사 정규식 고정과 표 복원, 부록 A 이유코드 선택 예외 정리 (ID 변경 없음) |

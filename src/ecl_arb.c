@@ -1,7 +1,7 @@
 /**
  * @file    ecl_arb.c
  * @brief   우선순위 중재 컴포넌트(CMP-ARB) 구현 (SSR-027 우선순위 표 P1~P11).
- * @tracing SSR-027, SSR-001, SSR-002, SSR-003, SSR-010, SSR-011, SSR-012, SSR-013, SSR-014, SSR-016, SSR-017, SSR-024
+ * @tracing SSR-027, SSR-001, SSR-002, SSR-003, SSR-010, SSR-011, SSR-012, SSR-013, SSR-014, SSR-016, SSR-024
  *
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
@@ -13,7 +13,27 @@
 #include "ecl_arb.h"
 
 /** 이유코드별 우선순위 순위(작을수록 높음). 인덱스는 ecl_reason_t 값(SRS 부록 A). */
-static const int P_RANK[19] = {99, 1, 2, 3, 4, 4, 4, 6, 6, 6, 5, 5, 7, 9, 8, 8, 10, 10, 11};
+static const int P_RANK[ECL_REASON_COUNT] = {
+    ECL_RANK_NONE,  /* RC_NONE */
+    ECL_RANK_P1,    /* RC_CRASH_CONFIRMED */
+    ECL_RANK_P2,    /* RC_SENSOR_FAULT */
+    ECL_RANK_P3,    /* RC_CRASH_PENDING_HOLD */
+    ECL_RANK_P4,    /* RC_CRASH_PENDING_TIMEOUT */
+    ECL_RANK_P4,    /* RC_INPUT_STALE */
+    ECL_RANK_P4,    /* RC_INPUT_INVALID */
+    ECL_RANK_P6,    /* RC_FIRE */
+    ECL_RANK_P6,    /* RC_OVERTEMP */
+    ECL_RANK_P6,    /* RC_ADULT_PRESENT */
+    ECL_RANK_P5,    /* RC_APPROACH_RISK */
+    ECL_RANK_P5,    /* RC_OVERRIDE_ACK */
+    ECL_RANK_P7,    /* RC_ISOFIX */
+    ECL_RANK_P9,    /* RC_IGNITION_OFF */
+    ECL_RANK_P8,    /* RC_SPEED_AUTO_LOCK */
+    ECL_RANK_P8,    /* RC_UNLOCK_DENIED_MOVING */
+    ECL_RANK_P10,   /* RC_DRIVER_LOCK */
+    ECL_RANK_P10,   /* RC_DRIVER_UNLOCK */
+    ECL_RANK_P11    /* RC_COMMAND_REJECTED */
+};
 
 /** 한 도어의 결정 */
 typedef struct {
@@ -60,7 +80,7 @@ static ecl_reason_t fire_reason(const ecl_inputs_t *in)
 }
 
 /**
- * @brief  운전자 명령이 해당 도어에 적용되는지 판정한다.
+ * @brief  운전자 명령이 해당 도어에 적용되는지 판정한다(lock/unlock 모두).
  * @tracing SRQ-FUN-002, SRQ-FUN-003, SRQ-FUN-006
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
@@ -200,13 +220,13 @@ static door_result_t decide_rules(const ecl_inputs_t *in, const ecl_cmd_result_t
                                   const ecl_lock_t prev[ECL_DOOR_COUNT], int d)
 {
     door_result_t res;
-    int applied = 0;
 
     res.lock = prev[d];
     res.reason = RC_NONE;
-    applied = apply_input_rules(in, cmd, ovr, d, &res);
-    if (applied == 0) {
-        (void)apply_driver(cmd, d, &res);
+    if (apply_input_rules(in, cmd, ovr, d, &res) == 0) {
+        if (apply_driver(cmd, d, &res) == 0) {
+            res.reason = RC_NONE;
+        }
     }
     if (in->pending_timeout_first != 0) {
         res.reason = RC_CRASH_PENDING_TIMEOUT;
@@ -252,8 +272,8 @@ static door_result_t decide_door(const ecl_inputs_t *in, const ecl_cmd_result_t 
 static ecl_reason_t merge_reason(ecl_reason_t a, ecl_reason_t b)
 {
     ecl_reason_t merged = a;
-    int rank_a = reason_rank(a);
-    int rank_b = reason_rank(b);
+    const int rank_a = reason_rank(a);
+    const int rank_b = reason_rank(b);
 
     if ((rank_b < rank_a) || ((rank_b == rank_a) && ((int)b < (int)a))) {
         merged = b;
@@ -263,7 +283,7 @@ static ecl_reason_t merge_reason(ecl_reason_t a, ecl_reason_t b)
 }
 
 /**
- * @brief  두 도어를 각각 결정하고 출력과 병합된 이유코드를 out에 채운다.
+ * @brief  충돌 CONFIRMED(P1)이 아닌 평가에서 두 도어를 각각 결정해 출력을 out에 채우고 병합한 이유코드를 반환한다.
  * @tracing SSR-027, SSR-014
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
@@ -272,19 +292,28 @@ static ecl_reason_t merge_reason(ecl_reason_t a, ecl_reason_t b)
  * @reviewed_by   -
  * @reviewed_at   -
  */
-static int decide_both(const ecl_inputs_t *in, const ecl_cmd_result_t *cmd, const ecl_ovr_result_t *ovr,
-                       const ecl_lock_t prev[ECL_DOOR_COUNT], ecl_decision_t *out)
+static ecl_reason_t decide_both(const ecl_inputs_t *in, const ecl_cmd_result_t *cmd, const ecl_ovr_result_t *ovr,
+                                const ecl_lock_t prev[ECL_DOOR_COUNT], ecl_decision_t *out)
 {
     const door_result_t left = decide_door(in, cmd, ovr, prev, (int)ECL_DOOR_LEFT);
     const door_result_t right = decide_door(in, cmd, ovr, prev, (int)ECL_DOOR_RIGHT);
 
     out->lock[ECL_DOOR_LEFT] = left.lock;
     out->lock[ECL_DOOR_RIGHT] = right.lock;
-    out->reason_code = merge_reason(left.reason, right.reason);
 
-    return 0;
+    return merge_reason(left.reason, right.reason);
 }
 
+/**
+ * @brief  도어별로 우선순위 규칙 P1~P11을 적용하여 출력과 이유코드를 결정한다(순수 함수).
+ * @tracing SSR-027, SSR-001, SSR-002, SSR-003, SSR-010, SSR-011, SSR-012, SSR-013, SSR-014, SSR-016, SSR-024, SRQ-FUN-021
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
+ */
 ecl_ret_t ecl_arb_decide(const ecl_inputs_t *in, const ecl_cmd_result_t *cmd, const ecl_ovr_result_t *ovr,
                          const ecl_lock_t prev[ECL_DOOR_COUNT], ecl_decision_t *out)
 {
@@ -299,7 +328,7 @@ ecl_ret_t ecl_arb_decide(const ecl_inputs_t *in, const ecl_cmd_result_t *cmd, co
             out->lock[ECL_DOOR_RIGHT] = ECL_RELEASE;
             out->reason_code = RC_CRASH_CONFIRMED;
         } else {
-            (void)decide_both(in, cmd, ovr, prev, out);
+            out->reason_code = decide_both(in, cmd, ovr, prev, out);
         }
         if ((out->command_rejected != 0) && (out->reason_code == RC_NONE)) {
             out->reason_code = RC_COMMAND_REJECTED;

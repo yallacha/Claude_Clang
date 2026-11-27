@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-/** VAL 컨텍스트. 모든 필드는 private이며 아래 함수로만 접근한다. */
+/** VAL 컨텍스트. 필드는 비공개 관례이며 아래 함수로만 접근한다. */
 typedef struct {
     int rx_valid;
     double last_rx_s;

@@ -34,12 +34,13 @@ inline ecl_snapshot_t ecl_normal_snapshot(double t)
 }
 
 /** 명령 부착 */
-inline void ecl_set_command(ecl_snapshot_t *s, int side, int action, int source)
+inline ecl_ret_t ecl_set_command(ecl_snapshot_t *s, int side, int action, int source)
 {
     s->command.present = 1;
     s->command.side = side;
     s->command.action = action;
     s->command.source = source;
+    return RET_OK;
 }
 
 #endif /* ECL_TEST_UTIL_H */

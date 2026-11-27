@@ -68,16 +68,21 @@ def C(side, action, src="AVN"):
 def describe_step(i, s):
     parts = []
     if s["tick"]:
-        return f"S{i}: tick t={s['t']:.2f}"
+        return f"S{i}: tick t={s['t']:.2f} s"
     base = S()
     if s["t"] is not None:
-        parts.append(f"t={s['t']:.2f}")
-    names = dict(speed="speed", gear="gear", age="age", crash="crash", rl="approach_left", rr="approach_right",
-                 fire="fire", ot="overtemp", adult="adult", ifl="isofix_left", ifr="isofix_right", ign="ignition_on",
-                 fault="sensor_fault")
+        parts.append(f"t={s['t']:.2f} s")
+    else:
+        parts.append("t=직전+0.010 s")
+    names = dict(speed="vehicle_speed_kph", gear="gear(0=P,1=N,2=D,3=R)", age="timestamp_s−source_timestamp_s",
+                 crash="crash_status(0=NONE,1=PENDING,2=CONFIRMED)", rl="rear_left_approach_risk(boolean)",
+                 rr="rear_right_approach_risk(boolean)", fire="fire_detected(boolean)",
+                 ot="overtemperature_detected(boolean)", adult="adult_present(boolean)", ifl="isofix_left(boolean)",
+                 ifr="isofix_right(boolean)", ign="ignition_on(boolean)", fault="sensor_fault(boolean)")
+    units = dict(speed=" km/h", age=" s")
     for k, n in names.items():
         if s[k] != base[k]:
-            parts.append(f"{n}={s[k]}")
+            parts.append(f"{n}={s[k]}{units.get(k, '')}")
     if s["cmd"] is not None:
         parts.append("cmd=" + "/".join(str(x) for x in s["cmd"]))
     return f"S{i}: " + (", ".join(parts) if parts else "정상 입력")
@@ -149,14 +154,14 @@ for f, vals in (("side", [ABSENT, -1, 3]), ("action", [ABSENT, -1, 2]), ("source
         c = [0, 0, 0]
         c[("side", "action", "source").index(f)] = v
         bad.append((f, v, c))
-st = [S(cmd=C("ALL", "LOCK"), exp=E("LOCK", "LOCK", reason="DRIVER_LOCK"))]
-for f, v, c in bad:
+for n, (f, v, c) in enumerate(bad, start=1):
     cmd = (c[0] if f == "side" else "ALL", c[1] if f == "action" else "UNLOCK", c[2] if f == "source" else "AVN")
-    st.append(S(cmd=cmd, exp=E("LOCK", "LOCK", reason="COMMAND_REJECTED", rej=1)))
-st.append(S(exp=E("LOCK", "LOCK", reason="NONE")))
-add_case("TC-F-004", ["SRQ-FUN-007", "SRQ-FUN-008", "SRQ-FUN-031", "SRQ-FUN-038"], "functional",
-         "명령 필드를 하나씩만 누락/범위 밖/미등록으로 만들면(무효 클래스는 케이스당 1개 결함) 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
-         st, ["동치 분할", "경계값 분석", "요구사항 기반"], pre="직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력")
+    st = [S(cmd=C("ALL", "LOCK"), exp=E("LOCK", "LOCK", reason="DRIVER_LOCK")),
+          S(cmd=cmd, exp=E("LOCK", "LOCK", reason="COMMAND_REJECTED", rej=1)),
+          S(exp=E("LOCK", "LOCK", reason="NONE"))]
+    add_case(f"TC-F-004-{n:02d}", ["SRQ-FUN-007", "SRQ-FUN-008", "SRQ-FUN-031", "SRQ-FUN-038"], "functional",
+             f"명령 필드 {f}만 {v}(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
+             st, ["동치 분할", "경계값 분석", "요구사항 기반"], pre="직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력")
 
 add_case("TC-F-005", ["SRQ-FUN-010", "SRQ-FUN-011", "SRQ-FUN-032"], "functional",
          "화재, 과온, 성인 탑승 각각 단독 및 동시 TRUE일 때 두 도어가 RELEASE되고 이유코드가 입력별(동시 시 fire > overtemp > adult)로 기록된다",
@@ -238,17 +243,26 @@ inv.append(("crash_status 범위 밖(5)", dict(crash=5), E("RELEASE", "RELEASE",
 inv.append(("ignition_on 범위 밖(2)", dict(ign=2), E("RELEASE", "RELEASE", "DEGRADED", "INPUT_INVALID")))
 inv.append(("source_timestamp 미래(age -0.1)", dict(age=-0.1), E("RELEASE", "RELEASE", "DEGRADED", "INPUT_STALE")))
 inv.append(("source_timestamp NaN", dict(age=NAN), E("RELEASE", "RELEASE", "DEGRADED", "INPUT_STALE")))
-st = []
-for desc, kw, e in inv:
-    st.append(RESET())
-    st.append(S(exp=e, **kw))
-add_case("TC-F-010", ["SSR-005", "SSR-006", "SSR-020", "SSR-021", "SSR-022", "SSR-023", "SSR-024", "SSR-025", "SSR-026",
-                      "SSR-029", "SSR-032", "SSR-037"], "functional",
-         "필수 입력을 하나씩만(무효 클래스 1개 결함) INVALID로 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다(입력 17종, 경계 speed 300.0 유효/300.1 무효 포함)",
-         st, ["동치 분할", "경계값 분석", "오류 추정", "요구사항 기반"], pre="직전 출력 RELEASE/RELEASE(각 단계 앞 reset 단계), 정지")
+INV_BASIS = {  # 입력별 근거 요구사항
+    "approach_left": ["SSR-005", "SSR-006", "SSR-020", "SSR-026", "SSR-032"],
+    "approach_right": ["SSR-005", "SSR-006", "SSR-020", "SSR-026", "SSR-032"],
+    "isofix": ["SSR-005", "SSR-006", "SSR-021", "SSR-026", "SSR-032"],
+    "fire/overtemp/adult": ["SSR-005", "SSR-006", "SSR-025", "SSR-026", "SSR-032"],
+    "sensor_fault": ["SSR-005", "SSR-006", "SSR-022", "SSR-032"],
+    "speed": ["SSR-005", "SSR-006", "SSR-023", "SSR-026", "SSR-032"],
+    "gear": ["SSR-005", "SSR-006"],
+    "crash/ignition": ["SSR-005", "SSR-006", "SSR-024", "SSR-037", "SSR-026", "SSR-032"],
+    "source_timestamp": ["SSR-005", "SSR-006", "SSR-029", "SSR-032"],
+}
+for n, (desc, kw, e) in enumerate(inv, start=1):
+    key = next(k for k in INV_BASIS if any(p in desc for p in k.split("/")))
+    add_case(f"TC-F-010-{n:02d}", INV_BASIS[key], "functional",
+             f"무효 클래스 1개({desc})만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
+             [RESET(), S(exp=e, **kw)], ["동치 분할", "경계값 분석", "오류 추정", "요구사항 기반"],
+             pre="직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상")
 
 add_case("TC-F-011", ["SSR-007", "SSR-008", "SSR-009", "SSR-010", "SSR-033", "SSR-034"], "functional",
-         "freshness 경계(age 0.200 fresh, 0.210 STALE)와 틱(마지막 스냅샷 후 0.200 s까지 정상, 0.210 s에 STALE)에서 DEGRADED 전이·출력 유지·복구를 확인한다",
+         "freshness 경계(age 0.200 fresh, 0.210 STALE)와 틱·스냅샷 간격(마지막 스냅샷 후 0.200 s까지 정상, 0.210 s에 STALE; 0.22 s 만에 도착한 스냅샷도 STALE, 다음 격자 스냅샷에서 복구)을 확인한다",
          [S(t=1.00, cmd=C("ALL", "LOCK"), exp=E("LOCK", "LOCK", reason="DRIVER_LOCK")),
           S(t=1.01, age=0.2, exp=E("LOCK", "LOCK", reason="NONE")),
           S(t=1.02, age=0.21, exp=E("LOCK", "LOCK", "DEGRADED", "INPUT_STALE")),
@@ -256,7 +270,8 @@ add_case("TC-F-011", ["SSR-007", "SSR-008", "SSR-009", "SSR-010", "SSR-033", "SS
           S(t=2.00, exp=E("LOCK", "LOCK", "NORMAL", "NONE")),
           S(t=2.20, tick=True, exp=E("LOCK", "LOCK", "NORMAL", "NONE")),
           S(t=2.21, tick=True, exp=E("LOCK", "LOCK", "DEGRADED", "INPUT_STALE")),
-          S(t=2.22, exp=E("LOCK", "LOCK", "NORMAL", "NONE"))],
+          S(t=2.22, exp=E("LOCK", "LOCK", "DEGRADED", "INPUT_STALE")),
+          S(t=2.23, exp=E("LOCK", "LOCK", "NORMAL", "NONE"))],
          ["경계값 분석", "동치 분할", "요구사항 기반"], pre="정지, 정상 입력")
 
 add_case("TC-F-012", ["SSR-016", "SSR-017", "SSR-018", "SSR-019"], "functional",
@@ -422,33 +437,27 @@ add_special("TC-NF-003", ["SRQ-QUA-REL-001"], "non-functional",
             "각 함수의 포인터 인자를 하나씩 nullptr",
             "1. 출력 버퍼를 센티널로 채운다.\n2. 각 함수를 NULL 인자로 호출한다.\n3. 반환값과 버퍼를 확인한다.",
             "모든 호출이 -1 반환, 출력 인자 불변", "예외 0건", ["동치 분할", "오류 추정"], priority="Medium")
-add_special("TC-F-017", ["SRQ-FUN-025", "SRQ-CON-009"], "functional",
-            "표시 계층(Web)이 상태 응답의 출력, state, 입력 유효성, 이유코드를 화면에 표시하며 HTML은 클라이언트 스크립트 없이 서버(C)가 생성한다",
-            "표시 계층 구현 후(이터레이션 3), 코어 연결",
-            "시험 입력 3종(정상, 접근위험, sensor_fault)",
-            "1. POST /snapshot으로 입력을 주입한다.\n2. GET /status 화면의 값을 읽는다.\n3. 응답 HTML에서 <script> 존재 여부를 검사한다.",
-            "표시값 = 상태 응답값, <script> 없음", "불일치 0건", ["요구사항 기반"],
-            env="Web (이터레이션 3 구현 후 실행)", remarks="미구현(이터레이션 3). 설계만 완료")
-add_special("TC-F-018", ["SRQ-FUN-024"], "functional",
-            "코어의 직렬화 실패(RET_ERR_SERIALIZE)가 표시 계층에서 HTTP 500으로 응답된다",
-            "표시 계층 구현 후(이터레이션 3), 직렬화 버퍼를 작게 강제",
-            "직렬화 버퍼 크기 4 바이트로 설정한 서버",
-            "1. 서버를 작은 버퍼로 기동한다.\n2. GET /status를 호출한다.",
-            "HTTP 상태 500", "상태 코드 = 500", ["고장 주입", "요구사항 기반"],
-            env="Web (이터레이션 3 구현 후 실행)", remarks="미구현(이터레이션 3). 설계만 완료")
+DEFERRED_TO_ITERATION_3 = ["SRQ-FUN-024", "SRQ-FUN-025", "SRQ-CON-008", "SRQ-CON-009"]  # 표시 계층(CMP-WEB, OI-017): 이터레이션 3에서 설계·시험
+
+# ---- 검사(INS/BLD) 케이스: ci/inspection.sh 가 자동 실행한다(TC-I-xxx)
+INSPECT = [
+    ("TC-I-001", ["SRQ-CON-001"], "제품 코어가 C11이다: src 아래 C 소스만 있고 -std=c11 -Wall -Wextra -Wpedantic -Werror 컴파일 경고가 0이다", "[PASS] SRQ-CON-001 출력"),
+    ("TC-I-002", ["SRQ-CON-002", "SRQ-CON-005"], "SW가 시스템 시계를 읽지 않는다: src/include에 time, clock, gettimeofday, clock_gettime, timespec_get, localtime, gmtime, difftime 호출이 없다", "[PASS] SRQ-CON-002, SRQ-CON-005 출력"),
+    ("TC-I-003", ["SRQ-CON-003"], "입력 구조체에 영상·음성·개인 식별자 필드가 없다", "[PASS] SRQ-CON-003 출력"),
+    ("TC-I-004", ["SRQ-CON-006"], "저장 구조체(ecl_event_t)의 필드가 event_id, timestamp_s, lock, state, reason_code, command_rejected, validity뿐이다", "[PASS] SRQ-CON-006 출력"),
+    ("TC-I-005", ["SRQ-CON-007"], "성인 존재가 boolean(int) 단일 필드 adult_present로만 정의된다", "[PASS] SRQ-CON-007 출력"),
+    ("TC-I-006", ["SRQ-CON-004"], "SW가 도어 래치/구동기 HW를 직접 구동하지 않는다: 장치·시스템 헤더, 인라인 어셈블리, volatile 접근이 없다", "[PASS] SRQ-CON-004 출력"),
+    ("TC-I-007", ["SRQ-FUN-039"], "시험용 접근자가 제품 빌드(ECL_TEST_BUILD 미정의)의 목적 파일에 없다: nm 심볼 목록에 ecl_log_test_set_counter, ecl_core_test_get_log가 없다", "[PASS] SRQ-FUN-039 출력"),
+]
+for tc_id, basis, purpose, expect in INSPECT:
+    add_special(tc_id, basis, "non-functional", purpose, "소스 트리와 claudeclangbuild 이미지",
+                "대상: src/*.c, include/*.h (제품 빌드)", "1. 이미지 안에서 ci/inspection.sh를 실행한다.\n2. build/reports/inspect/inspect.txt를 확인한다.",
+                expect, "스크립트 종료 코드 0, 해당 항목 [PASS]", ["오류 추정", "요구사항 기반"], env="검사(INS) — ci/inspection.sh (이미지)",
+                priority="Medium")
 
 # --------------------------------------------------------------------------- 요구사항 목록과 설계
 reqs_text = load_requirements()
-INS_ONLY = {  # 시스템 테스트 대상이 아닌 요구사항(검증 방법 INS/BLD)
-    "SRQ-CON-001": "검증 방법이 BLD/INS(C11 구현)로 정의되어 시스템 테스트 대상이 아님",
-    "SRQ-CON-002": "검증 방법이 INS/UT(시스템 시계 미사용 검사)로 정의됨",
-    "SRQ-CON-003": "검증 방법이 INS/UT(입력 구조에 금지 필드 없음)로 정의됨",
-    "SRQ-CON-004": "검증 방법이 INS(HW 직접 구동 없음)로 정의됨",
-    "SRQ-CON-005": "검증 방법이 INS(시스템 시계 호출 없음)로 정의됨",
-    "SRQ-CON-006": "검증 방법이 INS/UT(금지 정보 미저장)로 정의됨",
-    "SRQ-CON-007": "검증 방법이 INS/UT(adult 단일 boolean)로 정의됨",
-    "SRQ-CON-008": "검증 방법이 BLD/INS(표시 서버 C 구현)로 정의됨",
-}
+INS_ONLY = {rid: "표시 계층(CMP-WEB)은 이터레이션 3 범위(OI-017). 설계(아키텍처 §4.10)만 완료하고 시험 케이스는 이터레이션 3에서 작성" for rid in DEFERRED_TO_ITERATION_3}
 tc_map = {}
 for c in cases:
     for b in c["basis"]:
@@ -492,12 +501,21 @@ for rid, text in reqs_text.items():
         design.append(dict(id=f"BV-{rid}", basis_id=rid, technique="경계값 분석", item="수치·시간·건수 경계",
                            values="경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
                            covered_by=tcs, applicable=True, note=""))
+    elif has_in:
+        design.append(dict(id=f"BV-NA-{rid}", basis_id=rid, technique="경계값 분석", item="적용 검토", values="",
+                           covered_by=[], applicable=False,
+                           note="입력이 boolean·열거형·상태 조건이라 순서 있는 수치·시간·건수 범위가 없다. 경계는 열거 범위 밖 값(동치 분할의 무효 클래스)으로 다룬다."))
 # 페어와이즈 적용 검토 기록(미적용 요구사항: 사유 기록)
+PW_NOTES = {
+    "SRQ-FUN-001": "독립 파라미터 3개(source 4 × side 3 × action 2)이나 전 조합이 24개뿐이라 TC-F-001/002에서 전수 열거한다(전수는 페어와이즈보다 엄격). 조합 수가 작아 PICT를 쓰지 않는다.",
+    "SRQ-FUN-010": "독립 boolean 3개(fire, overtemp, adult)로 전 조합 8개 중 단독 3 + 이중 2를 TC-F-005에서 직접 열거했고 우선순위 상호작용은 SSR-027 PICT에서 다룬다.",
+    "SRQ-FUN-012": "isofix 좌우 2개 파라미터로 전 조합 4개를 TC-F-006에서 열거한다(2개 이하).",
+}
 for r in requirements:
     if r["testable"] and r["id"] != "SSR-027":
         design.append(dict(id=f"PW-NA-{r['id']}", basis_id=r["id"], technique="페어와이즈(PICT)", item="적용 검토",
                            values="", covered_by=[], applicable=False,
-                           note="이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."))
+                           note=PW_NOTES.get(r["id"], "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다.")))
 # 페어와이즈 설계 항목(PICT)
 for tc in pict_tcs:
     design.append(dict(id=f"PW-SSR-027-{tc[-2:]}", basis_id="SSR-027", technique="페어와이즈(PICT)",

@@ -14,13 +14,14 @@ struct Ctx {
     ecl_ovr_result_t ovr;
     ecl_lock_t prev[2];
     Ctx() : in(), cmd(), ovr(), prev{ECL_RELEASE, ECL_RELEASE} {}
-    void driver(int valid, ecl_side_t side, ecl_action_t action)
+    int driver(int valid, ecl_side_t side, ecl_action_t action)
     {
         cmd.present = 1;
         cmd.valid = valid;
         cmd.rejected = (valid == 0) ? 1 : 0;
         cmd.side = side;
         cmd.action = action;
+        return 0;
     }
     ecl_decision_t decide()
     {
@@ -33,7 +34,7 @@ struct Ctx {
 
 /**
  * @brief   [목적] 모든 인자가 NULL이면 각각 RET_ERR_NULL을 반환한다(인자별 독립).
- * @tracing SRQ-QUA-REL-001, SRQ-FUN-018, SRQ-FUN-021, SSR-019, SSR-033, SSR-036, SSR-037
+ * @tracing SRQ-QUA-REL-001
  * @par Input   in, cmd, ovr, prev, out을 하나씩 nullptr
  * @par Procedure  1. 각 호출
  * @par Expected   RET_ERR_NULL
@@ -57,7 +58,7 @@ TEST(ArbUnit, NullArgumentsReturnErrNull)
 
 /**
  * @brief   [목적] P1 충돌 CONFIRMED는 sensor_fault, 접근위험, 운전자 명령보다 우선하여 두 도어를 RELEASE한다.
- * @tracing SSR-001, SSR-002, SSR-027
+ * @tracing SSR-001, SSR-002, SSR-027, SRQ-FUN-021
  * @par Input   crash_confirmed=1, hold_reason=SENSOR_FAULT, approach 양쪽, prev LOCK/LOCK, lock 명령
  * @par Procedure  1. decide
  * @par Expected   lock=RELEASE/RELEASE, reason=RC_CRASH_CONFIRMED
@@ -75,7 +76,7 @@ TEST(ArbUnit, CrashConfirmedReleasesBothAboveAll)
     c.in.hold_reason = RC_SENSOR_FAULT;
     c.in.approach[0] = c.in.approach[1] = 1;
     c.prev[0] = c.prev[1] = ECL_LOCK;
-    c.driver(1, ECL_SIDE_ALL, ECL_ACTION_LOCK);
+    EXPECT_EQ(0, c.driver(1, ECL_SIDE_ALL, ECL_ACTION_LOCK));
     const ecl_decision_t d = c.decide();
     EXPECT_EQ(ECL_RELEASE, d.lock[0]);
     EXPECT_EQ(ECL_RELEASE, d.lock[1]);
@@ -84,7 +85,7 @@ TEST(ArbUnit, CrashConfirmedReleasesBothAboveAll)
 
 /**
  * @brief   [목적] P2~P4 유지: 직전 출력을 유지하고 hold_reason을 이유코드로 하되 접근위험 도어는 LOCK이다.
- * @tracing SSR-003, SSR-010, SSR-011, SSR-016, SSR-017, SSR-024
+ * @tracing SSR-003, SSR-010, SSR-011, SSR-016, SSR-017, SSR-024, SSR-019, SSR-033, SSR-036, SSR-037
  * @par Input   hold_reason ∈ {SENSOR_FAULT, CRASH_PENDING_HOLD, INPUT_STALE, INPUT_INVALID}, prev RELEASE/LOCK, approach[RIGHT]=1 또는 0
  * @par Procedure  1. 각 hold_reason으로 decide
  * @par Expected   approach 없음: lock=prev. approach[RIGHT]=1이면 RIGHT=LOCK. reason=hold_reason
@@ -103,7 +104,7 @@ TEST(ArbUnit, HoldKeepsPreviousExceptApproachDoorLocks)
         c.in.hold_reason = holds[i];
         c.prev[0] = ECL_RELEASE;
         c.prev[1] = ECL_LOCK;
-        c.driver(1, ECL_SIDE_ALL, ECL_ACTION_UNLOCK);
+        EXPECT_EQ(0, c.driver(1, ECL_SIDE_ALL, ECL_ACTION_UNLOCK));
         ecl_decision_t d = c.decide();
         EXPECT_EQ(ECL_RELEASE, d.lock[0]);
         EXPECT_EQ(ECL_LOCK, d.lock[1]);
@@ -118,7 +119,7 @@ TEST(ArbUnit, HoldKeepsPreviousExceptApproachDoorLocks)
 
 /**
  * @brief   [목적] P5 접근위험: 해당 도어만 LOCK, 해제 억제, 이유코드 RC_APPROACH_RISK(override ack이면 RC_OVERRIDE_ACK).
- * @tracing SSR-011, SSR-012, SSR-013, SSR-014, SRQ-FUN-033
+ * @tracing SSR-011, SSR-012, SSR-013, SSR-014, SRQ-FUN-033, SRQ-FUN-018
  * @par Input   approach[LEFT]=1, unlock(ALL) 명령, ack 0/1
  * @par Procedure  1. decide
  * @par Expected   LEFT=LOCK, RIGHT=RELEASE(명령). reason: ack 0→RC_APPROACH_RISK, ack 1→RC_OVERRIDE_ACK
@@ -135,7 +136,7 @@ TEST(ArbUnit, ApproachRiskLocksOnlyThatDoor)
     c.in.approach[0] = 1;
     c.prev[0] = ECL_LOCK;
     c.prev[1] = ECL_LOCK;
-    c.driver(1, ECL_SIDE_ALL, ECL_ACTION_UNLOCK);
+    EXPECT_EQ(0, c.driver(1, ECL_SIDE_ALL, ECL_ACTION_UNLOCK));
     ecl_decision_t d = c.decide();
     EXPECT_EQ(ECL_LOCK, d.lock[0]);
     EXPECT_EQ(ECL_RELEASE, d.lock[1]);
@@ -229,14 +230,14 @@ TEST(ArbUnit, MovingLocksAndDeniesUnlock)
 {
     Ctx c;
     c.in.speed_moving = 1;
-    c.driver(1, ECL_SIDE_ALL, ECL_ACTION_UNLOCK);
+    EXPECT_EQ(0, c.driver(1, ECL_SIDE_ALL, ECL_ACTION_UNLOCK));
     ecl_decision_t d = c.decide();
     EXPECT_EQ(ECL_LOCK, d.lock[0]);
     EXPECT_EQ(ECL_LOCK, d.lock[1]);
     EXPECT_EQ(RC_UNLOCK_DENIED_MOVING, d.reason_code);
-    c.driver(1, ECL_SIDE_ALL, ECL_ACTION_LOCK);
+    EXPECT_EQ(0, c.driver(1, ECL_SIDE_ALL, ECL_ACTION_LOCK));
     EXPECT_EQ(RC_SPEED_AUTO_LOCK, c.decide().reason_code);
-    c.driver(0, ECL_SIDE_ALL, ECL_ACTION_UNLOCK);
+    EXPECT_EQ(0, c.driver(0, ECL_SIDE_ALL, ECL_ACTION_UNLOCK));
     EXPECT_EQ(RC_SPEED_AUTO_LOCK, c.decide().reason_code);
     c = Ctx();
     c.in.speed_moving = 1;
@@ -287,26 +288,26 @@ TEST(ArbUnit, IgnitionOffReleasesUnlessMoving)
 TEST(ArbUnit, DriverCommandAppliesToSelectedDoorsOnly)
 {
     Ctx c;
-    c.driver(1, ECL_SIDE_LEFT, ECL_ACTION_LOCK);
+    EXPECT_EQ(0, c.driver(1, ECL_SIDE_LEFT, ECL_ACTION_LOCK));
     ecl_decision_t d = c.decide();
     EXPECT_EQ(ECL_LOCK, d.lock[0]);
     EXPECT_EQ(ECL_RELEASE, d.lock[1]);
     EXPECT_EQ(RC_DRIVER_LOCK, d.reason_code);
-    c.driver(1, ECL_SIDE_RIGHT, ECL_ACTION_LOCK);
+    EXPECT_EQ(0, c.driver(1, ECL_SIDE_RIGHT, ECL_ACTION_LOCK));
     d = c.decide();
     EXPECT_EQ(ECL_RELEASE, d.lock[0]);
     EXPECT_EQ(ECL_LOCK, d.lock[1]);
-    c.driver(1, ECL_SIDE_ALL, ECL_ACTION_LOCK);
+    EXPECT_EQ(0, c.driver(1, ECL_SIDE_ALL, ECL_ACTION_LOCK));
     d = c.decide();
     EXPECT_EQ(ECL_LOCK, d.lock[0]);
     EXPECT_EQ(ECL_LOCK, d.lock[1]);
     c.prev[0] = c.prev[1] = ECL_LOCK;
-    c.driver(1, ECL_SIDE_RIGHT, ECL_ACTION_UNLOCK);
+    EXPECT_EQ(0, c.driver(1, ECL_SIDE_RIGHT, ECL_ACTION_UNLOCK));
     d = c.decide();
     EXPECT_EQ(ECL_LOCK, d.lock[0]);
     EXPECT_EQ(ECL_RELEASE, d.lock[1]);
     EXPECT_EQ(RC_DRIVER_UNLOCK, d.reason_code);
-    c.driver(0, ECL_SIDE_ALL, ECL_ACTION_UNLOCK);
+    EXPECT_EQ(0, c.driver(0, ECL_SIDE_ALL, ECL_ACTION_UNLOCK));
     d = c.decide();
     EXPECT_EQ(ECL_LOCK, d.lock[0]);
     EXPECT_EQ(ECL_LOCK, d.lock[1]);
@@ -330,7 +331,7 @@ TEST(ArbUnit, DriverCommandAppliesToSelectedDoorsOnly)
 TEST(ArbUnit, RejectedCommandReasonOnlyWhenNoHigherRule)
 {
     Ctx c;
-    c.driver(0, ECL_SIDE_ALL, ECL_ACTION_LOCK);
+    EXPECT_EQ(0, c.driver(0, ECL_SIDE_ALL, ECL_ACTION_LOCK));
     ecl_decision_t d = c.decide();
     EXPECT_EQ(1, d.command_rejected);
     EXPECT_EQ(RC_COMMAND_REJECTED, d.reason_code);

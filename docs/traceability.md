@@ -46,10 +46,10 @@
 | SRQ-FUN-004 | CMP-ARB | ecl_arb | ArbUnit.MovingLocksAndDeniesUnlock | - | TC-F-003 |
 | SRQ-FUN-005 | CMP-ARB | ecl_arb | ArbUnit.MovingLocksAndDeniesUnlock, ValUnit.ValidInputsAreReflected | - | TC-F-003 |
 | SRQ-FUN-006 | CMP-ARB | ecl_arb | ArbUnit.DriverCommandAppliesToSelectedDoorsOnly | - | TC-F-001, TC-F-002 |
-| SRQ-FUN-007 | CMP-CMD | ecl_cmd | CmdUnit.AbsentCommandIsNeitherValidNorRejected, CmdUnit.RejectsInvalidAction, CmdUnit.RejectsInvalidSide, CmdUnit.RejectsInvalidSource | - | TC-F-004 |
-| SRQ-FUN-031 | CMP-CMD | ecl_cmd | CmdUnit.RejectsInvalidSide | - | TC-F-004 |
-| SRQ-FUN-008 | CMP-CMD | ecl_cmd | ArbUnit.RejectedCommandReasonOnlyWhenNoHigherRule, CoreUnit.RejectedCommandAlwaysRecorded | - | TC-F-004 |
-| SRQ-FUN-038 | CMP-ARB | ecl_arb | ArbUnit.RejectedCommandReasonOnlyWhenNoHigherRule, CoreUnit.RejectedCommandAlwaysRecorded | - | TC-F-004 |
+| SRQ-FUN-007 | CMP-CMD | ecl_cmd | CmdUnit.AbsentCommandIsNeitherValidNorRejected, CmdUnit.RejectsInvalidAction, CmdUnit.RejectsInvalidSide, CmdUnit.RejectsInvalidSource | - | TC-F-004-01, TC-F-004-02, TC-F-004-03, TC-F-004-04, TC-F-004-05, TC-F-004-06, TC-F-004-07, TC-F-004-08, TC-F-004-09 |
+| SRQ-FUN-031 | CMP-CMD | ecl_cmd | CmdUnit.RejectsInvalidSide | - | TC-F-004-01, TC-F-004-02, TC-F-004-03, TC-F-004-04, TC-F-004-05, TC-F-004-06, TC-F-004-07, TC-F-004-08, TC-F-004-09 |
+| SRQ-FUN-008 | CMP-CMD | ecl_cmd | ArbUnit.RejectedCommandReasonOnlyWhenNoHigherRule, CoreUnit.RejectedCommandAlwaysRecorded | - | TC-F-004-01, TC-F-004-02, TC-F-004-03, TC-F-004-04, TC-F-004-05, TC-F-004-06, TC-F-004-07, TC-F-004-08, TC-F-004-09 |
+| SRQ-FUN-038 | CMP-ARB | ecl_arb | ArbUnit.RejectedCommandReasonOnlyWhenNoHigherRule, CoreUnit.RejectedCommandAlwaysRecorded | - | TC-F-004-01, TC-F-004-02, TC-F-004-03, TC-F-004-04, TC-F-004-05, TC-F-004-06, TC-F-004-07, TC-F-004-08, TC-F-004-09 |
 | SRQ-FUN-009 | CMP-ARB | ecl_arb | ArbUnit.MovingLocksAndDeniesUnlock, ValUnit.SpeedRangeBoundariesAndMoving | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-003 |
 | SRQ-FUN-010 | CMP-ARB | ecl_arb | ArbUnit.ForcedReleaseReasonsAndApproachPrecedence, ValUnit.ValidInputsAreReflected | - | TC-F-005 |
 | SRQ-FUN-011 | CMP-ARB | ecl_arb | ArbUnit.ForcedReleaseReasonsAndApproachPrecedence | - | TC-F-005 |
@@ -59,80 +59,80 @@
 | SRQ-FUN-014 | CMP-ARB | ecl_arb | ArbUnit.IgnitionOffReleasesUnlessMoving, ValUnit.ValidInputsAreReflected | - | TC-F-007 |
 | SRQ-FUN-015 | CMP-STA | ecl_sta | StaUnit.DecidesStateByPriorityTable | - | TC-F-007 |
 | SRQ-FUN-016 | CMP-ARB | ecl_arb | ArbUnit.IgnitionOffReleasesUnlessMoving | - | TC-F-007 |
-| SRQ-FUN-017 | CMP-OVR | ecl_ovr | OvrUnit.DifferentSourceIsNotOverride, OvrUnit.FirstSuppressionThenOverrideAtBoundary, OvrUnit.NonRequestsDoNotSuppress | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-008 |
-| SRQ-FUN-018 | CMP-ARB | ecl_arb | ArbUnit.NullArgumentsReturnErrNull | - | TC-F-008 |
+| SRQ-FUN-017 | CMP-OVR | ecl_ovr | OvrUnit.DifferentSourceIsNotOverride, OvrUnit.FirstSuppressionThenOverrideAtBoundary, OvrUnit.NonRequestsDoNotSuppress, StaleUnit.ApproachResolveDeletesFirstSuppressionTime | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-008 |
+| SRQ-FUN-018 | CMP-ARB | ecl_arb | ArbUnit.ApproachRiskLocksOnlyThatDoor | - | TC-F-008 |
 | SRQ-FUN-019 | CMP-OVR | ecl_ovr | CoreUnit.CrashReleaseAndOverrideReporting, OvrUnit.FirstSuppressionThenOverrideAtBoundary | - | TC-F-008 |
 | SRQ-FUN-033 | CMP-OVR | ecl_ovr | ArbUnit.ApproachRiskLocksOnlyThatDoor, OvrUnit.FirstSuppressionThenOverrideAtBoundary | - | TC-F-008 |
 | SRQ-FUN-034 | CMP-OVR | ecl_ovr | OvrUnit.OverrideExpiresOnResolveOrTimeout | - | TC-F-008 |
 | SRQ-FUN-020 | CMP-OVR | ecl_ovr | OvrUnit.ReinputAfterWindowStartsNewSuppression | - | TC-F-008 |
 | SRQ-FUN-035 | CMP-OVR | ecl_ovr | OvrUnit.ReinputAfterWindowStartsNewSuppression | - | TC-F-008 |
-| SRQ-FUN-021 | CMP-ARB, CMP-CORE | ecl_arb, ecl_core | ArbUnit.NullArgumentsReturnErrNull | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-001, TC-F-013-01~14 |
+| SRQ-FUN-021 | CMP-ARB, CMP-CORE | ecl_arb, ecl_core | ArbUnit.CrashConfirmedReleasesBothAboveAll | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-001, TC-F-013-01~14 |
 | SRQ-FUN-022 | CMP-CORE, CMP-TYP | ecl_core, include/ecl_types.h | CoreUnit.CrashReleaseAndOverrideReporting, CoreUnit.SerializeDelegatesAndPropagatesError, SerUnit.FlagsAndValidityNamesAreSerialized, SerUnit.SerializesExactFormat | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-014 |
 | SRQ-FUN-023 | CMP-SER | ecl_ser | CoreUnit.SerializeDelegatesAndPropagatesError, SerUnit.BufferBoundary, SerUnit.OutOfRangeEnumsBecomeQuestionMark | CoreIntegration.SerializeErrorPropagates | TC-F-014 |
-| SRQ-FUN-024 | CMP-WEB | (이터레이션 3) | - | - | TC-F-018 |
-| SRQ-FUN-025 | CMP-WEB | (이터레이션 3) | - | - | TC-F-017 |
+| SRQ-FUN-024 | CMP-WEB | (이터레이션 3) | - | - | - |
+| SRQ-FUN-025 | CMP-WEB | (이터레이션 3) | - | - | - |
 | SRQ-FUN-026 | CMP-CORE | ecl_core | CoreUnit.InitialState | - | TC-F-007 |
 | SRQ-FUN-036 | CMP-CORE, CMP-STA | ecl_core, ecl_sta | CoreUnit.InitialState | - | TC-F-007 |
 | SRQ-FUN-027 | CMP-LOG | ecl_log | CoreUnit.EventContainsDefinedFields, CoreUnit.EventRecordedExactlyOnChange, CoreUnit.RejectedCommandAlwaysRecorded, CoreUnit.RightOutputOnlyChangeIsRecorded, CoreUnit.StateOnlyAndReasonOnlyChanges | CoreIntegration.EventHistoryFollowsEvaluations | TC-F-015 |
 | SRQ-FUN-028 | CMP-LOG | ecl_log | LogUnit.AssignsSequentialIdsAndQueriesAscending | CoreIntegration.EventHistoryFollowsEvaluations | TC-F-015 |
 | SRQ-FUN-037 | CMP-LOG | ecl_log | LogUnit.SaturatesAtMaxId | CoreIntegration.EventIdSaturationDoesNotStopControl | TC-F-016 |
-| SRQ-FUN-039 | CMP-LOG | ecl_log | LogUnit.SaturatesAtMaxId, LogUnit.TestSetCounterMaxAndRelease | CoreIntegration.EventIdSaturationDoesNotStopControl | TC-F-016 |
+| SRQ-FUN-039 | CMP-LOG | ecl_log | LogUnit.SaturatesAtMaxId, LogUnit.TestSetCounterMaxAndRelease, StaleUnit.TestLogAccessorChecksArgumentsAndReturnsLog | CoreIntegration.EventIdSaturationDoesNotStopControl | TC-F-016, TC-I-007 |
 | SRQ-FUN-029 | CMP-TYP | include/ecl_types.h | CoreUnit.EventContainsDefinedFields | CoreIntegration.EventHistoryFollowsEvaluations | TC-F-014 |
 | SRQ-FUN-030 | CMP-LOG | ecl_log | CoreUnit.SerializeDelegatesAndPropagatesError, LogUnit.AssignsSequentialIdsAndQueriesAscending, LogUnit.KeepsLatestHundredAtBoundary, LogUnit.QueryReturnsLatestCapacityItems | CoreIntegration.EventCapacityHundredThroughCore, CoreIntegration.EventHistoryFollowsEvaluations | TC-F-015 |
 | SRQ-QUA-FUN-001 | CMP-CORE, CMP-SER | ecl_core, ecl_ser | SerUnit.SerializesExactFormat | CoreIntegration.ReplayIsDeterministic | TC-NF-001 |
-| SRQ-QUA-REL-001 | CMP-CORE | ecl_core | ArbUnit.NullArgumentsReturnErrNull, CmdUnit.NullArgumentsReturnErrNull, CoreUnit.NullArgumentsReturnErrNull, LogUnit.NullArgumentsReturnErrNull, OvrUnit.NullArgumentsReturnErrNull, SerUnit.NullArgumentsReturnErrNull, StaUnit.NullArgumentsReturnErrNull, ValUnit.NullArgumentsReturnErrNull | - | TC-NF-003 |
+| SRQ-QUA-REL-001 | CMP-CORE | ecl_core | ArbUnit.NullArgumentsReturnErrNull, CmdUnit.NullArgumentsReturnErrNull, CoreUnit.NullArgumentsReturnErrNull, LogUnit.NullArgumentsReturnErrNull, OvrUnit.NullArgumentsReturnErrNull, SerUnit.NullArgumentsReturnErrNull, StaUnit.NullArgumentsReturnErrNull, StaleUnit.TestLogAccessorChecksArgumentsAndReturnsLog, ValUnit.NullArgumentsReturnErrNull | - | TC-NF-003 |
 | SRQ-LIM-001 | CMP-LOG | ecl_log | LogUnit.KeepsLatestHundredAtBoundary | CoreIntegration.EventCapacityHundredThroughCore | TC-F-015 |
 | SRQ-LIM-003 | CMP-LOG | ecl_log | LogUnit.KeepsLatestHundredAtBoundary | CoreIntegration.EventCapacityHundredThroughCore | TC-F-015 |
 | SRQ-LIM-002 | CMP-CORE | ecl_core | - | - | TC-NF-002 |
 | SRQ-LIM-004 | CMP-CORE | ecl_core | - | - | TC-NF-002 |
-| SRQ-CON-001 | 전체(횡단) | 전체 | - | - | - |
+| SRQ-CON-001 | 전체(횡단) | 전체 | - | - | TC-I-001 |
 | SRQ-CON-008 | CMP-WEB | (이터레이션 3) | - | - | - |
-| SRQ-CON-009 | CMP-WEB | (이터레이션 3) | - | - | TC-F-017 |
-| SRQ-CON-002 | CMP-CORE | ecl_core | - | CoreIntegration.ReplayIsDeterministic | - |
-| SRQ-CON-005 | CMP-CORE | ecl_core | - | CoreIntegration.ReplayIsDeterministic | - |
-| SRQ-CON-003 | CMP-TYP | include/ecl_types.h | - | - | - |
-| SRQ-CON-006 | CMP-TYP | include/ecl_types.h | - | - | - |
-| SRQ-CON-007 | CMP-TYP | include/ecl_types.h | - | - | - |
-| SRQ-CON-004 | CMP-CORE | ecl_core | - | - | - |
+| SRQ-CON-009 | CMP-WEB | (이터레이션 3) | - | - | - |
+| SRQ-CON-002 | CMP-CORE | ecl_core | - | CoreIntegration.ReplayIsDeterministic | TC-I-002 |
+| SRQ-CON-005 | CMP-CORE | ecl_core | - | CoreIntegration.ReplayIsDeterministic | TC-I-002 |
+| SRQ-CON-003 | CMP-TYP | include/ecl_types.h | - | - | TC-I-003 |
+| SRQ-CON-006 | CMP-TYP | include/ecl_types.h | - | - | TC-I-004 |
+| SRQ-CON-007 | CMP-TYP | include/ecl_types.h | - | - | TC-I-005 |
+| SRQ-CON-004 | CMP-CORE | ecl_core | - | - | TC-I-006 |
 | SSR-001 | CMP-ARB | ecl_arb | ArbUnit.CrashConfirmedReleasesBothAboveAll, CoreUnit.CrashReleaseAndOverrideReporting, ValUnit.ValidInputsAreReflected | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-009, TC-F-019 |
 | SSR-002 | CMP-ARB | ecl_arb | ArbUnit.CrashConfirmedReleasesBothAboveAll, CoreUnit.CrashReleaseAndOverrideReporting | - | TC-F-009 |
 | SSR-003 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.PendingHoldTimeoutOnceAndReset | CoreIntegration.PendingTimeoutFlow | TC-F-009 |
-| SSR-036 | CMP-ARB | ecl_arb | ArbUnit.NullArgumentsReturnErrNull, ValUnit.NullArgumentsReturnErrNull | CoreIntegration.PendingTimeoutFlow | TC-F-009 |
+| SSR-036 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.HoldReasonPriority | CoreIntegration.PendingTimeoutFlow | TC-F-009 |
 | SSR-004 | CMP-VAL | ecl_val | ArbUnit.PendingTimeoutReasonBeatsLowerRules, ValUnit.PendingHoldTimeoutOnceAndReset, ValUnit.PendingStateKeptWhileCrashInvalid | CoreIntegration.PendingTimeoutFlow | TC-F-009 |
 | SSR-031 | CMP-VAL | ecl_val | ArbUnit.PendingTimeoutReasonBeatsLowerRules, ValUnit.PendingHoldTimeoutOnceAndReset | CoreIntegration.PendingTimeoutFlow | TC-F-009 |
-| SSR-005 | CMP-VAL | ecl_val | ValUnit.BooleanInputRange, ValUnit.EachBooleanSignalValidatedIndependently, ValUnit.GearAndCrashEnumRanges, ValUnit.SourceTimestampRangeAndInvalidMeansStale, ValUnit.SpeedRangeBoundariesAndMoving | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010, TC-F-019 |
-| SSR-006 | CMP-VAL | ecl_val | ValUnit.BooleanInputRange, ValUnit.InvalidStaysInvalidWhenStale, ValUnit.StaleBoundaryAtPointTwoHundred | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010 |
-| SSR-032 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | - | TC-F-010 |
-| SSR-007 | CMP-VAL | ecl_val | ValUnit.InvalidStaysInvalidWhenStale, ValUnit.StaleBoundaryAtPointTwoHundred, ValUnit.StaleInputsAreNotReflected | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-011 |
-| SSR-008 | CMP-CORE, CMP-VAL | ecl_core, ecl_val | CoreUnit.TickDegradesAfterPointTwoHundred, ValUnit.TickBeforeFirstSnapshot, ValUnit.TickReusesLastSnapshotAndGoesStale | CoreIntegration.TickStaleThenRecover | TC-F-011 |
-| SSR-009 | CMP-ARB | ecl_arb | CoreUnit.TickDegradesAfterPointTwoHundred | CoreIntegration.TickStaleThenRecover | TC-F-011 |
-| SSR-033 | CMP-ARB | ecl_arb | ArbUnit.NullArgumentsReturnErrNull, ValUnit.NullArgumentsReturnErrNull | - | TC-F-011 |
-| SSR-010 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks | CoreIntegration.TickStaleThenRecover | TC-F-011 |
-| SSR-034 | CMP-VAL | ecl_val | CmdUnit.ValidCommandIsAccepted | CoreIntegration.TickStaleThenRecover | TC-F-011 |
-| SSR-029 | CMP-VAL | ecl_val | ValUnit.SourceTimestampRangeAndInvalidMeansStale | - | TC-F-010 |
-| SSR-011 | CMP-ARB | ecl_arb | ArbUnit.ApproachRiskLocksOnlyThatDoor, ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks | - | TC-F-008 |
+| SSR-005 | CMP-VAL | ecl_val | ValUnit.BooleanInputRange, ValUnit.EachBooleanSignalValidatedIndependently, ValUnit.GearAndCrashEnumRanges, ValUnit.SourceTimestampRangeAndInvalidMeansStale, ValUnit.SpeedRangeBoundariesAndMoving | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010-01, TC-F-010-02, TC-F-010-03, TC-F-010-04, TC-F-010-05, TC-F-010-06, TC-F-010-07, TC-F-010-08, TC-F-010-09, TC-F-010-10, TC-F-010-11, TC-F-010-12, TC-F-010-13, TC-F-010-14, TC-F-010-15, TC-F-010-16, TC-F-010-17, TC-F-019 |
+| SSR-006 | CMP-VAL | ecl_val | ValUnit.BooleanInputRange, ValUnit.InvalidStaysInvalidWhenStale, ValUnit.StaleBoundaryAtPointTwoHundred | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010-01, TC-F-010-02, TC-F-010-03, TC-F-010-04, TC-F-010-05, TC-F-010-06, TC-F-010-07, TC-F-010-08, TC-F-010-09, TC-F-010-10, TC-F-010-11, TC-F-010-12, TC-F-010-13, TC-F-010-14, TC-F-010-15, TC-F-010-16, TC-F-010-17 |
+| SSR-032 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | - | TC-F-010-01, TC-F-010-02, TC-F-010-03, TC-F-010-04, TC-F-010-05, TC-F-010-06, TC-F-010-07, TC-F-010-08, TC-F-010-09, TC-F-010-10, TC-F-010-11, TC-F-010-12, TC-F-010-14, TC-F-010-15, TC-F-010-16, TC-F-010-17 |
+| SSR-007 | CMP-VAL | ecl_val | StaleUnit.StaleKeepsApproachRiskTrueOnly, ValUnit.InvalidStaysInvalidWhenStale, ValUnit.StaleBoundaryAtPointTwoHundred, ValUnit.StaleInputsAreNotReflected | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-011 |
+| SSR-008 | CMP-CORE, CMP-VAL | ecl_core, ecl_val | CoreUnit.TickDegradesAfterPointTwoHundred, StaleUnit.SnapshotGapAbovePointTwoHundredIsStale, StaleUnit.TickKeepsInvalidSourceTimestamp, StaleUnit.TickUsesElapsedSinceLastReception, ValUnit.TickBeforeFirstSnapshot, ValUnit.TickReusesLastSnapshotAndGoesStale | CoreIntegration.TickStaleThenRecover | TC-F-011 |
+| SSR-009 | CMP-ARB | ecl_arb | CoreUnit.TickDegradesAfterPointTwoHundred, StaleUnit.CoreLocksApproachDoorWhileStale, StaleUnit.SnapshotGapAbovePointTwoHundredIsStale | CoreIntegration.TickStaleThenRecover | TC-F-011 |
+| SSR-033 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.StaleBoundaryAtPointTwoHundred | - | TC-F-011 |
+| SSR-010 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, StaleUnit.CoreLocksApproachDoorWhileStale | CoreIntegration.TickStaleThenRecover | TC-F-011 |
+| SSR-034 | CMP-VAL | ecl_val | StaUnit.DecidesStateByPriorityTable | CoreIntegration.TickStaleThenRecover | TC-F-011 |
+| SSR-029 | CMP-VAL | ecl_val | StaleUnit.TickKeepsInvalidSourceTimestamp, ValUnit.SourceTimestampRangeAndInvalidMeansStale | - | TC-F-010-16, TC-F-010-17 |
+| SSR-011 | CMP-ARB | ecl_arb | ArbUnit.ApproachRiskLocksOnlyThatDoor, ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, StaleUnit.CoreLocksApproachDoorWhileStale, StaleUnit.StaleKeepsApproachRiskTrueOnly | - | TC-F-008 |
 | SSR-012 | CMP-ARB | ecl_arb | ArbUnit.ApproachRiskLocksOnlyThatDoor | - | TC-F-008 |
 | SSR-013 | CMP-ARB | ecl_arb | ArbUnit.ApproachRiskLocksOnlyThatDoor | - | TC-F-008 |
 | SSR-014 | CMP-ARB | ecl_arb | ArbUnit.ApproachRiskLocksOnlyThatDoor | - | TC-F-008 |
-| SSR-015 | CMP-OVR | ecl_ovr | OvrUnit.FirstSuppressionThenOverrideAtBoundary, OvrUnit.NonRequestsDoNotSuppress | - | TC-F-008 |
-| SSR-035 | CMP-OVR | ecl_ovr | OvrUnit.OverrideExpiresOnResolveOrTimeout | - | TC-F-008 |
+| SSR-015 | CMP-OVR | ecl_ovr | OvrUnit.FirstSuppressionThenOverrideAtBoundary, OvrUnit.NonRequestsDoNotSuppress, StaleUnit.ApproachResolveDeletesFirstSuppressionTime | - | TC-F-008 |
+| SSR-035 | CMP-OVR | ecl_ovr | OvrUnit.OverrideExpiresOnResolveOrTimeout, StaleUnit.ApproachResolveDeletesFirstSuppressionTime | - | TC-F-008 |
 | SSR-016 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, OvrUnit.BlockedCommandsAreNotRecorded | - | TC-F-012 |
 | SSR-017 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks | - | TC-F-012 |
 | SSR-018 | CMP-STA | ecl_sta | StaUnit.DecidesStateByPriorityTable | - | TC-F-012 |
-| SSR-019 | CMP-ARB | ecl_arb | ArbUnit.NullArgumentsReturnErrNull, ValUnit.NullArgumentsReturnErrNull | - | TC-F-012 |
-| SSR-020 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010, TC-F-019 |
-| SSR-021 | CMP-ARB, CMP-VAL | ecl_arb, ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | - | TC-F-010 |
-| SSR-022 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010, TC-F-019 |
-| SSR-023 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely, ValUnit.SpeedRangeBoundariesAndMoving | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010 |
-| SSR-024 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.InvalidSignalsAreSubstitutedSafely | - | TC-F-010 |
-| SSR-037 | CMP-ARB | ecl_arb | ArbUnit.NullArgumentsReturnErrNull, ValUnit.NullArgumentsReturnErrNull | - | TC-F-010 |
-| SSR-025 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | - | TC-F-010 |
-| SSR-026 | CMP-ARB, CMP-STA | ecl_arb, ecl_sta | StaUnit.DecidesStateByPriorityTable, ValUnit.GearInvalidIsNotSubstituted | - | TC-F-010 |
+| SSR-019 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.HoldReasonPriority | - | TC-F-012 |
+| SSR-020 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010-01, TC-F-010-02, TC-F-019 |
+| SSR-021 | CMP-ARB, CMP-VAL | ecl_arb, ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | - | TC-F-010-03, TC-F-010-04 |
+| SSR-022 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010-08, TC-F-019 |
+| SSR-023 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely, ValUnit.SpeedRangeBoundariesAndMoving | CoreIntegration.InvalidInputsAreSafelySubstitutedAndReported | TC-F-010-09, TC-F-010-10, TC-F-010-11, TC-F-010-12 |
+| SSR-024 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.InvalidSignalsAreSubstitutedSafely | - | TC-F-010-14, TC-F-010-15 |
+| SSR-037 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.HoldReasonPriority | - | TC-F-010-14, TC-F-010-15 |
+| SSR-025 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | - | TC-F-010-05, TC-F-010-06, TC-F-010-07 |
+| SSR-026 | CMP-ARB, CMP-STA | ecl_arb, ecl_sta | StaUnit.DecidesStateByPriorityTable, ValUnit.GearInvalidIsNotSubstituted | - | TC-F-010-01, TC-F-010-02, TC-F-010-03, TC-F-010-04, TC-F-010-05, TC-F-010-06, TC-F-010-07, TC-F-010-09, TC-F-010-10, TC-F-010-11, TC-F-010-12, TC-F-010-14, TC-F-010-15 |
 | SSR-027 | CMP-ARB | ecl_arb | ArbUnit.CrashConfirmedReleasesBothAboveAll, ArbUnit.ForcedReleaseReasonsAndApproachPrecedence, ArbUnit.IgnitionOffReleasesUnlessMoving, ArbUnit.MergesReasonsByRankThenValue, ValUnit.HoldReasonPriority | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-019, TC-F-013-01~14 |
 | SSR-028 | CMP-STA | ecl_sta | StaUnit.DecidesStateByPriorityTable | - | TC-F-019, TC-F-013-01~14 |
 | SSR-030 | CMP-STA | ecl_sta | StaUnit.DecidesStateByPriorityTable | - | TC-F-013-01~14 |
 
-- **시스템 테스트 미추적 요구사항**: SRQ-CON-001, SRQ-CON-008, SRQ-CON-002, SRQ-CON-005, SRQ-CON-003, SRQ-CON-006, SRQ-CON-007, SRQ-CON-004 (검증 방법이 INS/BLD로 정의된 제약. 사유: 시스템 테스트 `미결 사항` 시트 Q-01~Q-08).
+- **시스템 테스트 미추적 요구사항**: SRQ-FUN-024, SRQ-FUN-025, SRQ-CON-008, SRQ-CON-009 (검증 방법이 INS/BLD로 정의된 제약. 사유: 시스템 테스트 `미결 사항` 시트 Q-01~Q-08).
 - **단위 테스트 @tracing 없는 요구사항**: SRQ-FUN-024, SRQ-FUN-025, SRQ-LIM-002, SRQ-LIM-004, SRQ-CON-001, SRQ-CON-008, SRQ-CON-009, SRQ-CON-002, SRQ-CON-005, SRQ-CON-003, SRQ-CON-006, SRQ-CON-007, SRQ-CON-004 (UT가 검증 방법이 아니거나 통합/시스템에서 검증).
 
 ## 3. Use Case ↔ 요구사항 (양방향, G1 증거)
