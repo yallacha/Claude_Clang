@@ -3,8 +3,8 @@
 pipeline {
     agent {
         docker {
+            // Jenkins 워크스페이스는 root 소유이므로 컨테이너도 root 로 실행한다(플러그인 기본값).
             image 'claudeclangbuild:latest'
-            args '-u 1000:1000'
         }
     }
     options {

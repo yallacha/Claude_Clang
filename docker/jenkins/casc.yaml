@@ -14,6 +14,9 @@ jenkins:
 unclassified:
   location:
     url: "http://localhost:8080/"
+  gitHubConfiguration:
+    # 인증 없는 GitHub API 는 시간당 60회로 제한된다. 한도에 가까울 때만 대기한다.
+    apiRateLimitChecker: ThrottleOnOver
 
 security:
   gitHostKeyVerificationConfiguration:
@@ -40,10 +43,10 @@ jobs:
             numToKeep(20)
           }
         }
-        // GitHub 변경을 폴링으로 감지한다 (이 PC는 외부에서 접근할 수 없으므로 웹훅 미사용)
+        // GitHub 변경을 폴링(15분)으로 감지한다 (익명 API 한도 60회/시간) (이 PC는 외부에서 접근할 수 없으므로 웹훅 미사용)
         triggers {
           periodicFolderTrigger {
-            interval('2m')
+            interval('15m')
           }
         }
       }

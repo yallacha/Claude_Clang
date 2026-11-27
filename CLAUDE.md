@@ -110,7 +110,7 @@ Run a single gtest case: build with `.claude/skills/unit-test/scripts/coverage.s
 
 - CI는 **Jenkins 안정화(LTS)**(`jenkins/jenkins:lts-jdk21`)를 이 PC의 Docker 위에서 실행한다. 포트 **8080**, `127.0.0.1`에만 바인딩(이 PC에서만 접속). 시작: `docker compose up -d --build`, 중지: `docker compose down`.
 - 관리자 계정은 `admin` / `admin`이다. 로컬 전용이며, 변경하려면 `JENKINS_ADMIN_PASSWORD` 환경변수로 컨테이너를 다시 시작한다.
-- 설정은 코드로 관리한다: `docker/jenkins/{Dockerfile,plugins.txt,casc.yaml}` (JCasC로 계정과 멀티브랜치 잡 `Claude_Clang` 자동 생성). GitHub 저장소는 공개이므로 자격 증명 없이 **2분 폴링**으로 브랜치/PR 변경을 감지한다. 비공개로 바꾸면 자격 증명을 추가해야 한다.
+- 설정은 코드로 관리한다: `docker/jenkins/{Dockerfile,plugins.txt,casc.yaml}` (JCasC로 계정과 멀티브랜치 잡 `Claude_Clang` 자동 생성). GitHub 저장소는 공개이므로 자격 증명 없이 **15분 폴링**(익명 GitHub API 한도 때문. 더 빠른 감지가 필요하면 읽기 전용 토큰을 등록)으로 브랜치/PR 변경을 감지한다. 비공개로 바꾸면 자격 증명을 추가해야 한다.
 - 설치된 플러그인(`plugins.txt`): Pipeline, Docker Pipeline, Git/GitHub Branch Source, Configuration as Code, Job DSL, JUnit(테스트 결과), Warnings Next Generation(CppCheck), Coverage(Cobertura), HTML Publisher 등.
 - `Jenkinsfile`은 `claudeclangbuild` 이미지 안에서 Build → CppCheck → Lizard → TDD → Unit(MC/DC 100%) → Integration(함수 100%) → CLOC을 실행하고, 기준 미달 시 실패 처리한다. 결과는 JUnit·Warnings·Coverage 화면과 아티팩트(`build/reports/`)에서 확인한다.
 - Jenkins는 호스트 Docker 데몬(`/var/run/docker.sock`)으로 빌드 컨테이너를 띄운다. 빌드 이미지는 호스트에서 먼저 빌드해 두어야 한다.
