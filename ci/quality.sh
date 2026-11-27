@@ -56,7 +56,7 @@ step_lizard() {
 
 step_inspect() {
     if ! has_src; then skip inspect "src/ 에 C 소스 없음"; return; fi
-    if ci/inspection.sh; then pass "inspect (INS/BLD 요구사항 검사)"; else fail "inspect: 검사 실패 (build/reports/inspect/inspect.txt)"; fi
+    if bash ci/inspection.sh; then pass "inspect (INS/BLD 요구사항 검사)"; else fail "inspect: 검사 실패 (build/reports/inspect/inspect.txt)"; fi
 }
 
 step_cloc() {
