@@ -77,4 +77,12 @@ else
     report FAIL SRQ-FUN-039 "제품 빌드 목적 파일에 시험용 접근자 심볼이 있거나 컴파일 실패"
 fi
 
+# HITL 태그: 전개되지 않은 자리표시자가 소스/시험에 남아 있지 않다 (CLAUDE.md 2장 주석 규칙)
+if grep -rln "@@HITL@@" src include tests >"$OUT/hitl_placeholders.txt"; then
+    report FAIL HITL "Human-in-the-Loop 태그 자리표시자(@@HITL@@) 미전개 파일: $(tr "
+" " " < "$OUT/hitl_placeholders.txt")"
+else
+    report PASS HITL "모든 소스/시험 주석의 AI 작성·사용자 리뷰 태그가 전개되어 있음"
+fi
+
 exit "$FAILED"

@@ -49,6 +49,9 @@ typedef enum {
 #define ECL_VALIDITY_NAME_COUNT (3)
 #define ECL_REASON_COUNT (19)
 #define ECL_SER_KEY_MAX (40U)
+#define ECL_SER_EQ_LEN (1U)
+#define ECL_SER_END_LEN (1U)
+#define ECL_SER_NUL_LEN (1U)
 #define ECL_FLAG_SET (1)
 #define ECL_FLAG_CLEAR (0)
 

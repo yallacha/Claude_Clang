@@ -132,7 +132,7 @@ TEST(CmdUnit, RejectsInvalidSource)
 }
 
 /**
- * @brief   [목적] 명령이 없으면(present=0) 수락도 거절도 아니고, present가 0/1이 아닌 값이면 형식 오류로 거절한다(DEC-011).
+ * @brief   [목적] 명령이 없으면(present=0) 수락도 거절도 아니고, present가 0/1이 아닌 값이면 형식 오류로 거절한다(DEC-013).
  * @tracing SRQ-FUN-007
  * @par Input   present = 0 / 2, -1 (나머지 필드 유효)
  * @par Procedure  1. 각 값으로 호출한다.

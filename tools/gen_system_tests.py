@@ -469,6 +469,27 @@ for c in special:
 for tc in pict_tcs:
     pass
 
+PARAM_TOKENS = ["crash_status", "sensor_fault", "rear_left_approach_risk", "rear_right_approach_risk", "접근위험", "fire_detected",
+                "overtemperature_detected", "adult_present", "isofix", "ignition_on", "vehicle_speed_kph", "gear",
+                "source_timestamp_s", "timestamp_s", "side", "action", "source", "이벤트", "state", "reason_code", "STALE", "INVALID",
+                "PENDING", "CONFIRMED", "override"]
+
+
+def pw_reason(r):
+    """요구사항 본문에 나오는 입력 파라미터를 세어 페어와이즈 적용 검토 사유를 요구사항별로 만든다."""
+    found = []
+    for tok in PARAM_TOKENS:
+        if tok in r["text"] and tok not in found:
+            found.append(tok)
+    n = len(found)
+    names = ", ".join(found) if found else "입력 파라미터 없음(출력/제약 요구)"
+    if n <= 2:
+        return (f"본문의 독립 파라미터 {n}개({names}) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. "
+                "다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다.")
+    return (f"본문에 파라미터 {n}개({names})가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. "
+            "입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다.")
+
+
 requirements = []
 open_issues = []
 design = []
@@ -515,7 +536,7 @@ for r in requirements:
     if r["testable"] and r["id"] != "SSR-027":
         design.append(dict(id=f"PW-NA-{r['id']}", basis_id=r["id"], technique="페어와이즈(PICT)", item="적용 검토",
                            values="", covered_by=[], applicable=False,
-                           note=PW_NOTES.get(r["id"], "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다.")))
+                           note=PW_NOTES.get(r["id"]) or pw_reason(r)))
 # 페어와이즈 설계 항목(PICT)
 for tc in pict_tcs:
     design.append(dict(id=f"PW-SSR-027-{tc[-2:]}", basis_id="SSR-027", technique="페어와이즈(PICT)",
@@ -530,7 +551,8 @@ for c in cases:
     if c["initial"] is not None:
         expected = "초기: " + describe_exp(0, c["initial"])[4:] + "\n" + expected
     proc = ("1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n"
-            "3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.")
+            "3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n"
+            "4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.")
     test_cases.append(dict(id=c["id"], basis_ids=c["basis"], category=c["category"], source="basis", proposed=False,
                            purpose=c["purpose"], preconditions=c["pre"], inputs=inputs, procedure=proc, expected=expected,
                            pass_criteria="모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",

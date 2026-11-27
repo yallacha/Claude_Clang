@@ -37,7 +37,7 @@ static int field_ok(int v, int lo, int hi)
 
 /**
  * @brief  원시 명령을 검사하여 수락/거절을 판정한다. present가 0이면 명령 없음, 1이면 필드를 검사하며,
- *         0/1이 아닌 present는 형식 오류로 거절한다(DEC-011).
+ *         0/1이 아닌 present는 형식 오류로 거절한다(DEC-013).
  * @tracing SRQ-FUN-001, SRQ-FUN-007, SRQ-FUN-008, SRQ-FUN-031
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27

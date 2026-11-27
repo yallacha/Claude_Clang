@@ -99,14 +99,20 @@ TEST(SystemTest, AllGeneratedCasesPass)
         const StStep *prev = nullptr;
         for (size_t i = 0; i < c.count; i++) {
             const StStep &s = c.steps[i];
-            if ((prev != nullptr) && (prev->tick == 0) && (s.tick == 0)) {
-                // 호출 계약(0.010 s 격자): 단계 사이에 시간 공백이 있으면 직전 입력(명령 제외)을 0.010 s 간격으로 반복 주입한다.
+            if (prev != nullptr) {
+                // 호출 계약(0.010 s 격자, SRQ-LIM-002): 단계 사이에 시간 공백이 있으면 0.010 s 간격으로 호출을 채운다.
+                // 틱이 관련되면 틱으로, 스냅샷 사이면 직전 입력(명령 제외)을 반복 주입한다. 케이스 절차(Excel)에 같은 규칙을 기술한다.
+                const bool tick_fill = (s.tick != 0) || (prev->tick != 0);
                 for (int k = 1; prev->t + 0.010 * k < s.t - 0.005; k++) {
                     StStep filler = *prev;
                     filler.t = prev->t + 0.010 * k;
                     filler.cs = -2;
-                    const ecl_snapshot_t fill_snap = make_snapshot(filler);
-                    ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &fill_snap)) << c.id << " fill before step " << i + 1;
+                    if (tick_fill) {
+                        ASSERT_EQ(RET_OK, ecl_core_tick(&core, filler.t)) << c.id << " tick fill before step " << i + 1;
+                    } else {
+                        const ecl_snapshot_t fill_snap = make_snapshot(filler);
+                        ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &fill_snap)) << c.id << " fill before step " << i + 1;
+                    }
                 }
             }
             prev = &s;
@@ -139,5 +145,15 @@ TEST(SystemTest, AllGeneratedCasesPass)
 TEST(SystemTest, CaseTableIsComplete)
 {
     EXPECT_STREQ("TC-F-001", kCases[0].id);
-    EXPECT_GE(sizeof(kCases) / sizeof(kCases[0]), 23U);
+    int f004 = 0;
+    int f010 = 0;
+    int f013 = 0;
+    for (const StCase &c : kCases) {
+        f004 += (std::string(c.id).rfind("TC-F-004-", 0) == 0) ? 1 : 0;
+        f010 += (std::string(c.id).rfind("TC-F-010-", 0) == 0) ? 1 : 0;
+        f013 += (std::string(c.id).rfind("TC-F-013-", 0) == 0) ? 1 : 0;
+    }
+    EXPECT_EQ(9, f004);   // 명령 필드 결함 9종(케이스당 1개)
+    EXPECT_EQ(17, f010);  // 입력 무효 클래스 17종(케이스당 1개)
+    EXPECT_GE(f013, 10);  // PICT 중재 조합
 }

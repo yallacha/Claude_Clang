@@ -94,8 +94,8 @@
 | SRQ-CON-006 | CMP-TYP | include/ecl_types.h | - | - | TC-I-004 |
 | SRQ-CON-007 | CMP-TYP | include/ecl_types.h | - | - | TC-I-005 |
 | SRQ-CON-004 | CMP-CORE | ecl_core | - | - | TC-I-006 |
-| SSR-001 | CMP-ARB | ecl_arb | ArbUnit.CrashConfirmedReleasesBothAboveAll, CoreUnit.CrashReleaseAndOverrideReporting, ValUnit.ValidInputsAreReflected | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-009, TC-F-019 |
-| SSR-002 | CMP-ARB | ecl_arb | ArbUnit.CrashConfirmedReleasesBothAboveAll, CoreUnit.CrashReleaseAndOverrideReporting | - | TC-F-009 |
+| SSR-001 | CMP-ARB | ecl_arb | ArbUnit.CrashConfirmedReleasesBothAboveAll, CoreUnit.CrashReleaseAndOverrideReporting, StaleUnit.ConfirmedCrashReleasesEvenWhenStale, ValUnit.StaleInputsAreNotReflected, ValUnit.ValidInputsAreReflected | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-009, TC-F-019 |
+| SSR-002 | CMP-ARB | ecl_arb | ArbUnit.CrashConfirmedReleasesBothAboveAll, CoreUnit.CrashReleaseAndOverrideReporting, StaleUnit.ConfirmedCrashReleasesEvenWhenStale | - | TC-F-009 |
 | SSR-003 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.PendingHoldTimeoutOnceAndReset | CoreIntegration.PendingTimeoutFlow | TC-F-009 |
 | SSR-036 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.HoldReasonPriority | CoreIntegration.PendingTimeoutFlow | TC-F-009 |
 | SSR-004 | CMP-VAL | ecl_val | ArbUnit.PendingTimeoutReasonBeatsLowerRules, ValUnit.PendingHoldTimeoutOnceAndReset, ValUnit.PendingStateKeptWhileCrashInvalid | CoreIntegration.PendingTimeoutFlow | TC-F-009 |
@@ -105,7 +105,7 @@
 | SSR-032 | CMP-VAL | ecl_val | ValUnit.InvalidSignalsAreSubstitutedSafely | - | TC-F-010-01, TC-F-010-02, TC-F-010-03, TC-F-010-04, TC-F-010-05, TC-F-010-06, TC-F-010-07, TC-F-010-08, TC-F-010-09, TC-F-010-10, TC-F-010-11, TC-F-010-12, TC-F-010-14, TC-F-010-15, TC-F-010-16, TC-F-010-17 |
 | SSR-007 | CMP-VAL | ecl_val | StaleUnit.StaleKeepsApproachRiskTrueOnly, ValUnit.InvalidStaysInvalidWhenStale, ValUnit.StaleBoundaryAtPointTwoHundred, ValUnit.StaleInputsAreNotReflected | CoreIntegration.VectorVProducesExpectedStatusPerRow | TC-F-011 |
 | SSR-008 | CMP-CORE, CMP-VAL | ecl_core, ecl_val | CoreUnit.TickDegradesAfterPointTwoHundred, StaleUnit.SnapshotGapAbovePointTwoHundredIsStale, StaleUnit.TickKeepsInvalidSourceTimestamp, StaleUnit.TickUsesElapsedSinceLastReception, ValUnit.TickBeforeFirstSnapshot, ValUnit.TickReusesLastSnapshotAndGoesStale | CoreIntegration.TickStaleThenRecover | TC-F-011 |
-| SSR-009 | CMP-ARB | ecl_arb | CoreUnit.TickDegradesAfterPointTwoHundred, StaleUnit.CoreLocksApproachDoorWhileStale, StaleUnit.SnapshotGapAbovePointTwoHundredIsStale | CoreIntegration.TickStaleThenRecover | TC-F-011 |
+| SSR-009 | CMP-ARB | ecl_arb | CoreUnit.TickDegradesAfterPointTwoHundred, StaleUnit.ConfirmedCrashReleasesEvenWhenStale, StaleUnit.CoreLocksApproachDoorWhileStale, StaleUnit.SnapshotGapAbovePointTwoHundredIsStale | CoreIntegration.TickStaleThenRecover | TC-F-011 |
 | SSR-033 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, ValUnit.StaleBoundaryAtPointTwoHundred | - | TC-F-011 |
 | SSR-010 | CMP-ARB | ecl_arb | ArbUnit.HoldKeepsPreviousExceptApproachDoorLocks, StaleUnit.CoreLocksApproachDoorWhileStale | CoreIntegration.TickStaleThenRecover | TC-F-011 |
 | SSR-034 | CMP-VAL | ecl_val | StaUnit.DecidesStateByPriorityTable | CoreIntegration.TickStaleThenRecover | TC-F-011 |

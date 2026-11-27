@@ -928,7 +928,7 @@
       "purpose": "정지·정상 입력에서 source 4종 × side 3종의 lock 명령이 선택된 도어에만 적용되고 반대쪽 도어는 변하지 않는다(24개 중 lock 12조합, 전 조합 완전 열거)",
       "preconditions": "정지(speed 0.0), 정상 입력, 직전 출력 RELEASE/RELEASE",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=LEFT/LOCK/PHYSICAL_BUTTON\nS3: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS4: t=직전+0.010 s, cmd=RIGHT/LOCK/PHYSICAL_BUTTON\nS5: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS6: t=직전+0.010 s, cmd=ALL/LOCK/PHYSICAL_BUTTON\nS7: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS8: t=직전+0.010 s, cmd=LEFT/LOCK/AVN\nS9: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS10: t=직전+0.010 s, cmd=RIGHT/LOCK/AVN\nS11: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS12: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS13: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS14: t=직전+0.010 s, cmd=LEFT/LOCK/VOICE\nS15: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS16: t=직전+0.010 s, cmd=RIGHT/LOCK/VOICE\nS17: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS18: t=직전+0.010 s, cmd=ALL/LOCK/VOICE\nS19: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS20: t=직전+0.010 s, cmd=LEFT/LOCK/MOBILE_APP\nS21: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS22: t=직전+0.010 s, cmd=RIGHT/LOCK/MOBILE_APP\nS23: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS24: t=직전+0.010 s, cmd=ALL/LOCK/MOBILE_APP",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS4: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS5: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS6: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS7: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS8: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS9: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS10: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS11: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS12: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS13: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS14: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS15: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS16: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS17: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS18: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS19: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS20: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS21: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS22: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS23: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS24: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -952,7 +952,7 @@
       "purpose": "정지·정상 입력에서 source 4종 × side 3종의 unlock 명령이 선택된 도어만 RELEASE하고 반대쪽 도어는 변하지 않는다(24개 중 unlock 12조합)",
       "preconditions": "정지(speed 0.0), 정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/PHYSICAL_BUTTON\nS2: t=직전+0.010 s, cmd=LEFT/UNLOCK/PHYSICAL_BUTTON\nS3: t=직전+0.010 s, cmd=ALL/LOCK/PHYSICAL_BUTTON\nS4: t=직전+0.010 s, cmd=RIGHT/UNLOCK/PHYSICAL_BUTTON\nS5: t=직전+0.010 s, cmd=ALL/LOCK/PHYSICAL_BUTTON\nS6: t=직전+0.010 s, cmd=ALL/UNLOCK/PHYSICAL_BUTTON\nS7: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS8: t=직전+0.010 s, cmd=LEFT/UNLOCK/AVN\nS9: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS10: t=직전+0.010 s, cmd=RIGHT/UNLOCK/AVN\nS11: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS12: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS13: t=직전+0.010 s, cmd=ALL/LOCK/VOICE\nS14: t=직전+0.010 s, cmd=LEFT/UNLOCK/VOICE\nS15: t=직전+0.010 s, cmd=ALL/LOCK/VOICE\nS16: t=직전+0.010 s, cmd=RIGHT/UNLOCK/VOICE\nS17: t=직전+0.010 s, cmd=ALL/LOCK/VOICE\nS18: t=직전+0.010 s, cmd=ALL/UNLOCK/VOICE\nS19: t=직전+0.010 s, cmd=ALL/LOCK/MOBILE_APP\nS20: t=직전+0.010 s, cmd=LEFT/UNLOCK/MOBILE_APP\nS21: t=직전+0.010 s, cmd=ALL/LOCK/MOBILE_APP\nS22: t=직전+0.010 s, cmd=RIGHT/UNLOCK/MOBILE_APP\nS23: t=직전+0.010 s, cmd=ALL/LOCK/MOBILE_APP\nS24: t=직전+0.010 s, cmd=ALL/UNLOCK/MOBILE_APP",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS6: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS7: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS8: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS9: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS10: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS11: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS12: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS13: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS14: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS15: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS16: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS17: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS18: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS19: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS20: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS21: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS22: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS23: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS24: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -976,7 +976,7 @@
       "purpose": "속도 경계 3.0 km/h(2.9, 3.0, 300.0)에서 자동 LOCK과 이동 중 unlock 거부(이유코드 RC_UNLOCK_DENIED_MOVING)를 확인한다",
       "preconditions": "IGN ON, 기어 P/D, 정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, vehicle_speed_kph=2.9 km/h, cmd=ALL/UNLOCK/AVN\nS3: t=직전+0.010 s, vehicle_speed_kph=3.0 km/h\nS4: t=직전+0.010 s, vehicle_speed_kph=3.0 km/h, cmd=ALL/UNLOCK/AVN\nS5: t=직전+0.010 s, vehicle_speed_kph=300.0 km/h\nS6: t=직전+0.010 s, vehicle_speed_kph=2.9 km/h\nS7: t=직전+0.010 s, vehicle_speed_kph=2.9 km/h, cmd=ALL/UNLOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_SPEED_AUTO_LOCK\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_UNLOCK_DENIED_MOVING\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_SPEED_AUTO_LOCK\nS6: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS7: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1002,7 +1002,7 @@
       "purpose": "명령 필드 side만 ABSENT(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
       "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, cmd=ABSENT/UNLOCK/AVN\nS3: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1028,7 +1028,7 @@
       "purpose": "명령 필드 side만 -1(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
       "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, cmd=-1/UNLOCK/AVN\nS3: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1054,7 +1054,7 @@
       "purpose": "명령 필드 side만 3(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
       "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, cmd=3/UNLOCK/AVN\nS3: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1080,7 +1080,7 @@
       "purpose": "명령 필드 action만 ABSENT(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
       "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, cmd=ALL/ABSENT/AVN\nS3: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1106,7 +1106,7 @@
       "purpose": "명령 필드 action만 -1(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
       "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, cmd=ALL/-1/AVN\nS3: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1132,7 +1132,7 @@
       "purpose": "명령 필드 action만 2(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
       "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, cmd=ALL/2/AVN\nS3: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1158,7 +1158,7 @@
       "purpose": "명령 필드 source만 ABSENT(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
       "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, cmd=ALL/UNLOCK/ABSENT\nS3: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1184,7 +1184,7 @@
       "purpose": "명령 필드 source만 -1(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
       "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, cmd=ALL/UNLOCK/-1\nS3: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1210,7 +1210,7 @@
       "purpose": "명령 필드 source만 4(누락/범위 밖/미등록, 케이스당 무효 클래스 1개)로 주입하면 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
       "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, cmd=ALL/UNLOCK/4\nS3: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1235,7 +1235,7 @@
       "purpose": "화재, 과온, 성인 탑승 각각 단독 및 동시 TRUE일 때 두 도어가 RELEASE되고 이유코드가 입력별(동시 시 fire > overtemp > adult)로 기록된다",
       "preconditions": "정상 입력, 정지, 직전 출력 LOCK/LOCK(단계 설정)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, fire_detected(boolean)=1\nS3: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS4: t=직전+0.010 s, overtemperature_detected(boolean)=1\nS5: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS6: t=직전+0.010 s, adult_present(boolean)=1\nS7: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS8: t=직전+0.010 s, fire_detected(boolean)=1, adult_present(boolean)=1\nS9: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS10: t=직전+0.010 s, overtemperature_detected(boolean)=1, adult_present(boolean)=1",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_FIRE\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_OVERTEMP\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS6: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_ADULT_PRESENT\nS7: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS8: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_FIRE\nS9: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS10: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_OVERTEMP",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1258,7 +1258,7 @@
       "purpose": "ISOFIX가 TRUE인 쪽만 LOCK되고 FALSE인 쪽은 ISOFIX 규칙으로 변경되지 않으며 ISOFIX 도어는 운전자 unlock보다 우선한다",
       "preconditions": "정지, 정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, isofix_left(boolean)=1\nS3: t=직전+0.010 s, isofix_left(boolean)=1, isofix_right(boolean)=1\nS4: t=직전+0.010 s, isofix_right(boolean)=1\nS5: t=직전+0.010 s, isofix_left(boolean)=1, cmd=ALL/UNLOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_ISOFIX\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_ISOFIX\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_ISOFIX\nS5: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_ISOFIX",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1284,7 +1284,7 @@
       "purpose": "초기 출력/state(RELEASE/RELEASE/OFF) 확인 후, ignition_on=FALSE이면 두 도어 RELEASE, state=OFF, 이유코드 RC_IGNITION_OFF이다(속도 3.0 이상이면 LOCK 우선)",
       "preconditions": "초기화 직후",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, ignition_on(boolean)=0\nS3: t=직전+0.010 s\nS4: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS5: t=직전+0.010 s, vehicle_speed_kph=3.0 km/h, ignition_on(boolean)=0",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "초기: lock_left=RELEASE, lock_right=RELEASE, state=OFF, reason=RC_NONE\nS1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=OFF, reason=RC_IGNITION_OFF\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_NONE\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS5: lock_left=LOCK, lock_right=LOCK, state=OFF, reason=RC_SPEED_AUTO_LOCK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1318,7 +1318,7 @@
       "purpose": "접근위험 도어는 LOCK·해제 억제(좌우 독립), 같은 source의 10.0 s 이내 재입력은 override(LOCK 유지), 10.01 s 초과는 새 억제, 접근위험 해소 시 override 해제를 확인한다",
       "preconditions": "정지, 정상 입력(우 도어 접근위험 없음)",
       "inputs": "S1: t=1.00 s, cmd=ALL/LOCK/AVN\nS2: t=2.00 s, rear_left_approach_risk(boolean)=1, cmd=ALL/UNLOCK/AVN\nS3: t=12.00 s, rear_left_approach_risk(boolean)=1, cmd=ALL/UNLOCK/AVN\nS4: t=12.01 s\nS5: t=20.00 s, rear_left_approach_risk(boolean)=1, cmd=LEFT/UNLOCK/AVN\nS6: t=30.01 s, rear_left_approach_risk(boolean)=1, cmd=LEFT/UNLOCK/AVN\nS7: t=30.02 s, rear_left_approach_risk(boolean)=1, cmd=LEFT/UNLOCK/AVN\nS8: t=30.03 s, rear_left_approach_risk(boolean)=1, cmd=LEFT/UNLOCK/VOICE\nS9: t=45.00 s, rear_left_approach_risk(boolean)=1",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=0\nS3: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_OVERRIDE_ACK, override_left=1, override_right=0\nS4: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_NONE, override_left=0\nS5: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=0\nS6: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=0\nS7: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_OVERRIDE_ACK, override_left=1\nS8: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=1\nS9: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=0",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1346,7 +1346,7 @@
       "purpose": "충돌 CONFIRMED는 모든 명령·접근위험보다 우선해 RELEASE를 유지하고, PENDING은 1.000 s까지 출력 유지(RC_CRASH_PENDING_HOLD)·1.010 s에 RC_CRASH_PENDING_TIMEOUT을 한 번만 기록한다",
       "preconditions": "정지, 정상 입력",
       "inputs": "S1: t=1.00 s, cmd=ALL/LOCK/AVN\nS2: t=직전+0.010 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2\nS3: t=직전+0.010 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2, cmd=ALL/LOCK/AVN\nS4: t=직전+0.010 s\nS5: t=직전+0.010 s, cmd=ALL/LOCK/AVN\nS6: t=5.00 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=1\nS7: t=6.00 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=1\nS8: t=6.01 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=1\nS9: t=6.02 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=1\nS10: t=6.03 s\nS11: t=7.00 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2, rear_left_approach_risk(boolean)=1",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED\nS4: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_NONE\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS6: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_CRASH_PENDING_HOLD\nS7: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_CRASH_PENDING_HOLD\nS8: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_CRASH_PENDING_TIMEOUT\nS9: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS10: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS11: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1373,7 +1373,7 @@
       "purpose": "무효 클래스 1개(approach_left 누락)만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, rear_left_approach_risk(boolean)=ABSENT",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=DEGRADED, reason=RC_APPROACH_RISK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1401,7 +1401,7 @@
       "purpose": "무효 클래스 1개(approach_right 범위 밖(7))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, rear_right_approach_risk(boolean)=7",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=DEGRADED, reason=RC_APPROACH_RISK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1429,7 +1429,7 @@
       "purpose": "무효 클래스 1개(isofix_left 범위 밖(-1))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, isofix_left(boolean)=-1",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=DEGRADED, reason=RC_ISOFIX",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1457,7 +1457,7 @@
       "purpose": "무효 클래스 1개(isofix_right 누락)만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, isofix_right(boolean)=ABSENT",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=DEGRADED, reason=RC_ISOFIX",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1485,7 +1485,7 @@
       "purpose": "무효 클래스 1개(fire 범위 밖(2))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, fire_detected(boolean)=2",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1513,7 +1513,7 @@
       "purpose": "무효 클래스 1개(overtemp 범위 밖(2))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, overtemperature_detected(boolean)=2",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1541,7 +1541,7 @@
       "purpose": "무효 클래스 1개(adult 누락)만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, adult_present(boolean)=ABSENT",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1568,7 +1568,7 @@
       "purpose": "무효 클래스 1개(sensor_fault 범위 밖(2))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, sensor_fault(boolean)=2",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1596,7 +1596,7 @@
       "purpose": "무효 클래스 1개(speed NaN)만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, vehicle_speed_kph=NaN km/h",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_SPEED_AUTO_LOCK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1624,7 +1624,7 @@
       "purpose": "무효 클래스 1개(speed -0.1)만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, vehicle_speed_kph=-0.1 km/h",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_SPEED_AUTO_LOCK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1652,7 +1652,7 @@
       "purpose": "무효 클래스 1개(speed 300.1)만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, vehicle_speed_kph=300.1 km/h",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_SPEED_AUTO_LOCK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1680,7 +1680,7 @@
       "purpose": "무효 클래스 1개(speed 300.0(유효 상한))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, vehicle_speed_kph=300.0 km/h",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_SPEED_AUTO_LOCK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1705,7 +1705,7 @@
       "purpose": "무효 클래스 1개(gear 범위 밖(9))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, gear(0=P,1=N,2=D,3=R)=9",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1734,7 +1734,7 @@
       "purpose": "무효 클래스 1개(crash_status 범위 밖(5))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=5",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_INPUT_INVALID",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1763,7 +1763,7 @@
       "purpose": "무효 클래스 1개(ignition_on 범위 밖(2))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, ignition_on(boolean)=2",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_INPUT_INVALID",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1790,7 +1790,7 @@
       "purpose": "무효 클래스 1개(source_timestamp 미래(age -0.1))만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, timestamp_s−source_timestamp_s=-0.1 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_INPUT_STALE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1817,7 +1817,7 @@
       "purpose": "무효 클래스 1개(source_timestamp NaN)만 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다",
       "preconditions": "직전 출력 RELEASE/RELEASE(reset 단계로 설정), 정지, 나머지 입력 정상",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, timestamp_s−source_timestamp_s=NaN s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_INPUT_STALE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1846,7 +1846,7 @@
       "purpose": "freshness 경계(age 0.200 fresh, 0.210 STALE)와 틱·스냅샷 간격(마지막 스냅샷 후 0.200 s까지 정상, 0.210 s에 STALE; 0.22 s 만에 도착한 스냅샷도 STALE, 다음 격자 스냅샷에서 복구)을 확인한다",
       "preconditions": "정지, 정상 입력",
       "inputs": "S1: t=1.00 s, cmd=ALL/LOCK/AVN\nS2: t=1.01 s, timestamp_s−source_timestamp_s=0.2 s\nS3: t=1.02 s, timestamp_s−source_timestamp_s=0.21 s\nS4: t=1.03 s\nS5: t=2.00 s\nS6: tick t=2.20 s\nS7: tick t=2.21 s\nS8: t=2.22 s\nS9: t=2.23 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS3: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_INPUT_STALE\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS6: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS7: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_INPUT_STALE\nS8: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_INPUT_STALE\nS9: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1872,7 +1872,7 @@
       "purpose": "sensor_fault=TRUE이면 새 명령을 적용하지 않고 직전 출력을 유지하며(접근위험 도어는 LOCK) state=FAULT, 경고코드 RC_SENSOR_FAULT를 제공한다",
       "preconditions": "정지, 정상 입력",
       "inputs": "S1: t=직전+0.010 s, cmd=LEFT/LOCK/AVN\nS2: t=직전+0.010 s, sensor_fault(boolean)=1, cmd=ALL/UNLOCK/AVN\nS3: t=직전+0.010 s, rear_right_approach_risk(boolean)=1, sensor_fault(boolean)=1\nS4: t=직전+0.010 s",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT\nS3: lock_left=LOCK, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1900,7 +1900,7 @@
       "purpose": "WoW(Worst-of-Worst): 충돌+sensor_fault+접근위험+화재+ISOFIX+속도 300+시동 OFF+lock 명령을 동시에 주입(W1), 충돌 없이 같은 조합+unlock(W2), 모든 입력과 명령을 동시에 무효(W3)",
       "preconditions": "정지, 직전 출력 RELEASE/RELEASE(단계 설정)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, vehicle_speed_kph=300.0 km/h, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2, rear_left_approach_risk(boolean)=1, rear_right_approach_risk(boolean)=1, fire_detected(boolean)=1, isofix_left(boolean)=1, isofix_right(boolean)=1, ignition_on(boolean)=0, sensor_fault(boolean)=1, cmd=ALL/LOCK/AVN\nS3: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS4: t=직전+0.010 s, vehicle_speed_kph=300.0 km/h, rear_left_approach_risk(boolean)=1, rear_right_approach_risk(boolean)=1, fire_detected(boolean)=1, isofix_left(boolean)=1, isofix_right(boolean)=1, ignition_on(boolean)=0, sensor_fault(boolean)=1, cmd=ALL/UNLOCK/AVN\nS5: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS6: t=직전+0.010 s, vehicle_speed_kph=NaN km/h, gear(0=P,1=N,2=D,3=R)=ABSENT, timestamp_s−source_timestamp_s=NaN s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=ABSENT, rear_left_approach_risk(boolean)=ABSENT, rear_right_approach_risk(boolean)=ABSENT, fire_detected(boolean)=ABSENT, overtemperature_detected(boolean)=ABSENT, adult_present(boolean)=ABSENT, isofix_left(boolean)=ABSENT, isofix_right(boolean)=ABSENT, ignition_on(boolean)=ABSENT, sensor_fault(boolean)=ABSENT, cmd=ABSENT/ABSENT/ABSENT",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_CRASH_CONFIRMED\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS4: lock_left=LOCK, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT\nS5: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS6: lock_left=LOCK, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT, command_rejected=1",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1926,7 +1926,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #1: prev=LR, crash=0, fault=1, approach_left=0, fire=1, isofix_left=0, speed=0.0, ign=0, cmd=lock",
       "preconditions": "직전 출력 설정 단계 후(prev=LR)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=LEFT/LOCK/AVN\nS3: t=직전+0.010 s, fire_detected(boolean)=1, ignition_on(boolean)=0, sensor_fault(boolean)=1, cmd=ALL/LOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1951,7 +1951,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #2: prev=RR, crash=1, fault=0, approach_left=1, fire=0, isofix_left=1, speed=3.0, ign=1, cmd=lock",
       "preconditions": "직전 출력 설정 단계 후(prev=RR)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, vehicle_speed_kph=3.0 km/h, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=1, rear_left_approach_risk(boolean)=1, isofix_left(boolean)=1, cmd=ALL/LOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_PENDING_HOLD",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -1976,7 +1976,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #3: prev=LL, crash=2, fault=1, approach_left=1, fire=1, isofix_left=1, speed=0.0, ign=1, cmd=unlock",
       "preconditions": "직전 출력 설정 단계 후(prev=LL)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=LEFT/LOCK/AVN\nS3: t=직전+0.010 s, cmd=RIGHT/LOCK/AVN\nS4: t=직전+0.010 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2, rear_left_approach_risk(boolean)=1, fire_detected(boolean)=1, isofix_left(boolean)=1, sensor_fault(boolean)=1, cmd=ALL/UNLOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_CRASH_CONFIRMED",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2001,7 +2001,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #4: prev=RR, crash=2, fault=0, approach_left=0, fire=0, isofix_left=0, speed=3.0, ign=0, cmd=none",
       "preconditions": "직전 출력 설정 단계 후(prev=RR)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, vehicle_speed_kph=3.0 km/h, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2, ignition_on(boolean)=0",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=OFF, reason=RC_CRASH_CONFIRMED",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2026,7 +2026,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #5: prev=LR, crash=1, fault=1, approach_left=0, fire=0, isofix_left=1, speed=0.0, ign=1, cmd=none",
       "preconditions": "직전 출력 설정 단계 후(prev=LR)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=LEFT/LOCK/AVN\nS3: t=직전+0.010 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=1, isofix_left(boolean)=1, sensor_fault(boolean)=1",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2051,7 +2051,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #6: prev=RL, crash=0, fault=0, approach_left=1, fire=0, isofix_left=1, speed=3.0, ign=0, cmd=unlock",
       "preconditions": "직전 출력 설정 단계 후(prev=RL)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=RIGHT/LOCK/AVN\nS3: t=직전+0.010 s, vehicle_speed_kph=3.0 km/h, rear_left_approach_risk(boolean)=1, isofix_left(boolean)=1, ignition_on(boolean)=0, cmd=ALL/UNLOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=OFF, reason=RC_APPROACH_RISK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2076,7 +2076,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #7: prev=LL, crash=0, fault=0, approach_left=1, fire=1, isofix_left=0, speed=3.0, ign=1, cmd=none",
       "preconditions": "직전 출력 설정 단계 후(prev=LL)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=LEFT/LOCK/AVN\nS3: t=직전+0.010 s, cmd=RIGHT/LOCK/AVN\nS4: t=직전+0.010 s, vehicle_speed_kph=3.0 km/h, rear_left_approach_risk(boolean)=1, fire_detected(boolean)=1",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2101,7 +2101,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #8: prev=RL, crash=1, fault=1, approach_left=0, fire=1, isofix_left=0, speed=0.0, ign=0, cmd=unlock",
       "preconditions": "직전 출력 설정 단계 후(prev=RL)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=RIGHT/LOCK/AVN\nS3: t=직전+0.010 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=1, fire_detected(boolean)=1, ignition_on(boolean)=0, sensor_fault(boolean)=1, cmd=ALL/UNLOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2126,7 +2126,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #9: prev=LR, crash=2, fault=0, approach_left=1, fire=0, isofix_left=1, speed=3.0, ign=0, cmd=unlock",
       "preconditions": "직전 출력 설정 단계 후(prev=LR)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=LEFT/LOCK/AVN\nS3: t=직전+0.010 s, vehicle_speed_kph=3.0 km/h, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2, rear_left_approach_risk(boolean)=1, isofix_left(boolean)=1, ignition_on(boolean)=0, cmd=ALL/UNLOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=RELEASE, state=OFF, reason=RC_CRASH_CONFIRMED",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2151,7 +2151,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #10: prev=LL, crash=2, fault=1, approach_left=0, fire=0, isofix_left=1, speed=3.0, ign=0, cmd=lock",
       "preconditions": "직전 출력 설정 단계 후(prev=LL)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=LEFT/LOCK/AVN\nS3: t=직전+0.010 s, cmd=RIGHT/LOCK/AVN\nS4: t=직전+0.010 s, vehicle_speed_kph=3.0 km/h, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2, isofix_left(boolean)=1, ignition_on(boolean)=0, sensor_fault(boolean)=1, cmd=ALL/LOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_CRASH_CONFIRMED",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2176,7 +2176,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #11: prev=RL, crash=2, fault=0, approach_left=1, fire=1, isofix_left=0, speed=0.0, ign=1, cmd=lock",
       "preconditions": "직전 출력 설정 단계 후(prev=RL)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=RIGHT/LOCK/AVN\nS3: t=직전+0.010 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2, rear_left_approach_risk(boolean)=1, fire_detected(boolean)=1, cmd=ALL/LOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2201,7 +2201,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #12: prev=RR, crash=0, fault=1, approach_left=0, fire=1, isofix_left=1, speed=0.0, ign=0, cmd=unlock",
       "preconditions": "직전 출력 설정 단계 후(prev=RR)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, fire_detected(boolean)=1, isofix_left(boolean)=1, ignition_on(boolean)=0, sensor_fault(boolean)=1, cmd=ALL/UNLOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2226,7 +2226,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #13: prev=RL, crash=2, fault=0, approach_left=0, fire=1, isofix_left=0, speed=0.0, ign=1, cmd=none",
       "preconditions": "직전 출력 설정 단계 후(prev=RL)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=RIGHT/LOCK/AVN\nS3: t=직전+0.010 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=2, fire_detected(boolean)=1",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -2251,7 +2251,7 @@
       "purpose": "중재 우선순위 페어와이즈 조합 #14: prev=LL, crash=1, fault=1, approach_left=1, fire=1, isofix_left=1, speed=0.0, ign=1, cmd=unlock",
       "preconditions": "직전 출력 설정 단계 후(prev=LL)",
       "inputs": "S1: t=직전+0.010 s, cmd=ALL/UNLOCK/AVN\nS2: t=직전+0.010 s, cmd=LEFT/LOCK/AVN\nS3: t=직전+0.010 s, cmd=RIGHT/LOCK/AVN\nS4: t=직전+0.010 s, crash_status(0=NONE,1=PENDING,2=CONFIRMED)=1, rear_left_approach_risk(boolean)=1, fire_detected(boolean)=1, isofix_left(boolean)=1, sensor_fault(boolean)=1, cmd=ALL/UNLOCK/AVN",
-      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 단계 사이에 시간 공백(t 점프)이 있으면 호출 계약(평가 호출 간격 0.010 s)을 지키기 위해 그 사이를 0.010 s 간격으로 채운다: 스냅샷 단계 사이는 직전 단계의 입력(명령 제외)을 반복 주입하고, 틱이 관련된 구간은 tick을 호출한다(채움 호출의 중간 상태는 검사하지 않는다).\n4. 각 단계 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
       "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=LOCK, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT",
       "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
       "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
@@ -4642,7 +4642,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(side) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-003",
@@ -4652,7 +4652,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(side) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-004",
@@ -4662,7 +4662,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-005",
@@ -4672,7 +4672,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-006",
@@ -4682,7 +4682,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(side) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-007",
@@ -4692,7 +4692,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 3개(side, action, source)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SRQ-FUN-031",
@@ -4702,7 +4702,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-008",
@@ -4712,7 +4712,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-038",
@@ -4722,7 +4722,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(reason_code) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-009",
@@ -4732,7 +4732,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(vehicle_speed_kph) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-010",
@@ -4752,7 +4752,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-032",
@@ -4762,7 +4762,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 3개(fire_detected, overtemperature_detected, adult_present)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SRQ-FUN-012",
@@ -4782,7 +4782,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-014",
@@ -4792,7 +4792,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(ignition_on) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-015",
@@ -4802,7 +4802,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(state) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-016",
@@ -4812,7 +4812,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-017",
@@ -4822,7 +4822,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(접근위험, override) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-018",
@@ -4832,7 +4832,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(접근위험, override) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-019",
@@ -4842,7 +4842,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(override) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-033",
@@ -4852,7 +4852,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(override) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-034",
@@ -4862,7 +4862,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(접근위험, override) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-020",
@@ -4872,7 +4872,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-035",
@@ -4882,7 +4882,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(timestamp_s) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-021",
@@ -4892,7 +4892,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-022",
@@ -4902,7 +4902,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 5개(state, reason_code, STALE, INVALID, override)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SRQ-FUN-023",
@@ -4912,7 +4912,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-026",
@@ -4922,7 +4922,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-036",
@@ -4932,7 +4932,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(state) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-027",
@@ -4942,7 +4942,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 3개(이벤트, state, reason_code)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SRQ-FUN-028",
@@ -4952,7 +4952,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(이벤트) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-037",
@@ -4962,7 +4962,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(이벤트) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-039",
@@ -4972,7 +4972,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(이벤트) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-FUN-029",
@@ -4982,7 +4982,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 4개(timestamp_s, 이벤트, state, reason_code)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SRQ-FUN-030",
@@ -4992,7 +4992,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(이벤트) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-QUA-FUN-001",
@@ -5002,7 +5002,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-QUA-REL-001",
@@ -5012,7 +5012,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-LIM-001",
@@ -5022,7 +5022,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(이벤트) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-LIM-003",
@@ -5032,7 +5032,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(이벤트) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-LIM-002",
@@ -5042,7 +5042,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 3개(source_timestamp_s, timestamp_s, source)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SRQ-LIM-004",
@@ -5052,7 +5052,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-CON-001",
@@ -5062,7 +5062,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-CON-002",
@@ -5072,7 +5072,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(timestamp_s) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-CON-005",
@@ -5082,7 +5082,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-CON-003",
@@ -5092,7 +5092,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-CON-006",
@@ -5102,7 +5102,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-CON-007",
@@ -5112,7 +5112,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SRQ-CON-004",
@@ -5122,7 +5122,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-001",
@@ -5132,7 +5132,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 3개(crash_status, STALE, CONFIRMED)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SSR-002",
@@ -5142,7 +5142,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(crash_status, CONFIRMED) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-003",
@@ -5152,7 +5152,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 3개(crash_status, 접근위험, PENDING)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SSR-036",
@@ -5162,7 +5162,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(PENDING) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-004",
@@ -5172,7 +5172,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(PENDING) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-031",
@@ -5182,7 +5182,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 3개(STALE, INVALID, PENDING)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SSR-005",
@@ -5192,7 +5192,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-006",
@@ -5202,7 +5202,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-032",
@@ -5212,7 +5212,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-007",
@@ -5222,7 +5222,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 4개(source_timestamp_s, timestamp_s, source, STALE)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SSR-008",
@@ -5232,7 +5232,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(timestamp_s, STALE) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-009",
@@ -5242,7 +5242,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(state, STALE) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-033",
@@ -5252,7 +5252,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(STALE) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-010",
@@ -5262,7 +5262,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(접근위험, STALE) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-034",
@@ -5272,7 +5272,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 0개(입력 파라미터 없음(출력/제약 요구)) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-029",
@@ -5282,7 +5282,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 5개(source_timestamp_s, timestamp_s, source, STALE, INVALID)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SSR-011",
@@ -5292,7 +5292,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(접근위험, CONFIRMED) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-012",
@@ -5302,7 +5302,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(접근위험) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-013",
@@ -5312,7 +5312,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(접근위험) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-014",
@@ -5322,7 +5322,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(접근위험) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-015",
@@ -5332,7 +5332,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(접근위험) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-035",
@@ -5342,7 +5342,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(접근위험) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-016",
@@ -5352,7 +5352,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(sensor_fault, INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-017",
@@ -5362,7 +5362,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(sensor_fault, 접근위험) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-018",
@@ -5372,7 +5372,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(sensor_fault, state) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-019",
@@ -5382,7 +5382,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(sensor_fault) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-020",
@@ -5392,7 +5392,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(접근위험, INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-021",
@@ -5402,7 +5402,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(isofix, INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-022",
@@ -5412,7 +5412,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(sensor_fault, INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-023",
@@ -5422,7 +5422,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(vehicle_speed_kph, INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-024",
@@ -5432,7 +5432,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 4개(crash_status, 접근위험, ignition_on, INVALID)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SSR-037",
@@ -5442,7 +5442,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 3개(crash_status, ignition_on, INVALID)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SSR-025",
@@ -5452,7 +5452,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문에 파라미터 4개(fire_detected, overtemperature_detected, adult_present, INVALID)가 언급되나 서로 독립적으로 조합되는 입력이 아니라 한 규칙의 조건·결과이다. 입력 간 상호작용(우선순위 조합)은 SSR-027 PICT 모델(pict_model_arb.txt, 9개 파라미터 2-way)에서 다루고 이 요구사항은 단일 규칙 시나리오(TC)로 검증한다."
     },
     {
       "id": "PW-NA-SSR-026",
@@ -5462,7 +5462,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 2개(state, INVALID) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-028",
@@ -5472,7 +5472,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(state) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-NA-SSR-030",
@@ -5482,7 +5482,7 @@
       "values": "",
       "covered_by": [],
       "applicable": false,
-      "note": "이 요구사항 자체의 독립 입력 파라미터는 1~2개이거나 단일 조건이다(전수 시험 가능). 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
+      "note": "본문의 독립 파라미터 1개(state) ≤ 2라 요구사항 자체의 조합 폭발이 없고 동치 분할·경계값으로 전수 검증한다. 다른 입력과의 상호작용은 SSR-027 PICT 모델(pict_model_arb.txt)에서 다룬다."
     },
     {
       "id": "PW-SSR-027-01",

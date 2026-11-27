@@ -460,9 +460,9 @@ TEST(CoreUnit, RightOutputOnlyChangeIsRecorded)
 /**
  * @brief   [목적] 기록된 이벤트가 정의된 필드(event_id, timestamp_s, lock, state, reason_code, command_rejected, validity)를 평가 결과대로 담는다.
  * @tracing SRQ-FUN-029, SRQ-FUN-027
- * @par Input   t=0.010 정상 평가 후 t=0.020 LEFT lock 명령(속도 입력 INVALID로 validity 확인)
+ * @par Input   t=0.010 정상 평가 후 t=0.020 LEFT lock 명령 + adult_present=9(INVALID, validity 확인)
  * @par Procedure  이벤트 조회 후 필드를 비교한다.
- * @par Expected   두 번째 이벤트: event_id=2, timestamp_s=0.020, lock=LOCK/RELEASE, state=DEGRADED, reason=RC_DRIVER_LOCK, validity[SPEED]=INVALID
+ * @par Expected   두 번째 이벤트: event_id=2, timestamp_s=0.020, lock=LOCK/RELEASE, state=DEGRADED, reason=RC_DRIVER_LOCK, validity[ADULT]=INVALID, command_rejected=0
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
  * @requested_by  Heechang Jang
@@ -476,10 +476,7 @@ TEST(CoreUnit, EventContainsDefinedFields)
     ecl_snapshot_t s = ecl_normal_snapshot(0.010);
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     s = ecl_normal_snapshot(0.020);
-    s.vehicle_speed_kph = -1.0;
-    s.command.present = 0;
     EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN));
-    s.vehicle_speed_kph = 0.0;
     s.adult_present = 9;
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
     ecl_event_t ev[4] = {};

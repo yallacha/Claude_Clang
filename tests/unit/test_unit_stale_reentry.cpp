@@ -228,3 +228,38 @@ TEST(StaleUnit, TestLogAccessorChecksArgumentsAndReturnsLog)
     ASSERT_EQ(1U, n);
     EXPECT_EQ(42U, ev[0].event_id);
 }
+
+/**
+ * @brief   [목적] 입력이 STALE이어도 crash_status CONFIRMED는 두 도어를 RELEASE하고 유지하며 state는 DEGRADED이다(SSR-001, 충돌 해제는 다른 신호의 오래됨에 막히지 않는다).
+ * @tracing SSR-001, SSR-002, SSR-009
+ * @par Input   t=1.00 s LOCK, t=2.00 s source 지연 0.3 s(STALE)인 스냅샷 crash_status=CONFIRMED, 틱 2.01 s
+ * @par Procedure  1. LOCK 평가 2. STALE+CONFIRMED 스냅샷 3. 틱(직전 스냅샷 재사용)
+ * @par Expected   2.00 s: RELEASE/RELEASE, RC_CRASH_CONFIRMED, DEGRADED. 틱 2.01 s: 계속 RELEASE
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
+ */
+TEST(StaleUnit, ConfirmedCrashReleasesEvenWhenStale)
+{
+    ecl_core_t core;
+    ecl_status_t st = {};
+    ecl_snapshot_t s = ecl_normal_snapshot(1.0);
+    ASSERT_EQ(RET_OK, ecl_core_init(&core));
+    EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
+    ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
+    s = ecl_normal_snapshot(2.0);
+    s.source_timestamp_s = 1.7;
+    s.crash_status = ECL_CRASH_CONFIRMED;
+    ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
+    ASSERT_EQ(RET_OK, ecl_core_get_status(&core, &st));
+    EXPECT_EQ(ECL_RELEASE, st.lock[ECL_DOOR_LEFT]);
+    EXPECT_EQ(ECL_RELEASE, st.lock[ECL_DOOR_RIGHT]);
+    EXPECT_EQ(RC_CRASH_CONFIRMED, st.reason_code);
+    EXPECT_EQ(ECL_STATE_DEGRADED, st.state);
+    ASSERT_EQ(RET_OK, ecl_core_tick(&core, 2.01));
+    ASSERT_EQ(RET_OK, ecl_core_get_status(&core, &st));
+    EXPECT_EQ(ECL_RELEASE, st.lock[ECL_DOOR_LEFT]);
+}

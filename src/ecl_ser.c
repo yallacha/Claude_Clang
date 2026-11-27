@@ -3,7 +3,12 @@
  * @brief   상태 직렬화 컴포넌트(CMP-SER) 구현: `필드=값;` ASCII. 길이를 먼저 계산(건식)하여 버퍼가 충분할 때만 기록한다.
  * @tracing SRQ-FUN-023, SRQ-QUA-FUN-001
  *
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 #include "ecl_ser.h"
 
@@ -26,7 +31,12 @@ static const char *const SIGNAL_NAMES[ECL_SIG_COUNT] = {
 /**
  * @brief  열거값에 대응하는 이름을 반환한다(범위 밖은 "?").
  * @tracing SRQ-FUN-023
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static const char *name_of(const char *const *table, int count, int idx)
 {
@@ -42,7 +52,12 @@ static const char *name_of(const char *const *table, int count, int idx)
 /**
  * @brief  `name=value;`를 buf의 pos 위치에 쓰고(buf가 NULL이면 길이만 계산) 새 위치를 반환한다.
  * @tracing SRQ-FUN-023
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static size_t write_pair(char *buf, size_t pos, const char *name, const char *value)
 {
@@ -52,17 +67,22 @@ static size_t write_pair(char *buf, size_t pos, const char *name, const char *va
     if (buf != NULL) {
         (void)memcpy(&buf[pos], name, name_len);
         buf[pos + name_len] = '=';
-        (void)memcpy(&buf[pos + name_len + 1U], value, value_len);
-        buf[pos + name_len + 1U + value_len] = ';';
+        (void)memcpy(&buf[pos + name_len + ECL_SER_EQ_LEN], value, value_len);
+        buf[pos + name_len + ECL_SER_EQ_LEN + value_len] = ';';
     }
 
-    return pos + name_len + value_len + 2U;
+    return pos + name_len + ECL_SER_EQ_LEN + value_len + ECL_SER_END_LEN;
 }
 
 /**
  * @brief  출력, state, 이유코드, override, command_rejected 필드를 pos 위치부터 쓰고 새 위치를 반환한다.
  * @tracing SRQ-FUN-022, SRQ-FUN-023
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static size_t write_header(char *buf, size_t pos, const ecl_status_t *st)
 {
@@ -82,7 +102,12 @@ static size_t write_header(char *buf, size_t pos, const ecl_status_t *st)
 /**
  * @brief  입력별 validity 필드(`validity_<신호>`)를 pos 위치부터 쓰고 새 위치를 반환한다.
  * @tracing SRQ-FUN-022
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static size_t write_validity(char *buf, size_t pos, const ecl_status_t *st)
 {
@@ -101,7 +126,12 @@ static size_t write_validity(char *buf, size_t pos, const ecl_status_t *st)
 /**
  * @brief  전체 직렬화(헤더 + validity)를 쓰고 총 길이(널 문자 제외)를 반환한다.
  * @tracing SRQ-FUN-022, SRQ-QUA-FUN-001
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static size_t write_all(char *buf, const ecl_status_t *st)
 {
@@ -113,7 +143,12 @@ static size_t write_all(char *buf, const ecl_status_t *st)
 /**
  * @brief  상태를 `필드=값;` ASCII로 직렬화한다. 버퍼가 부족하면 RET_ERR_SERIALIZE이며 buf는 변경하지 않는다.
  * @tracing SRQ-FUN-023, SRQ-QUA-FUN-001
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 ecl_ret_t ecl_ser_status(const ecl_status_t *status, char *buf, size_t capacity, size_t *length)
 {
@@ -123,7 +158,7 @@ ecl_ret_t ecl_ser_status(const ecl_status_t *status, char *buf, size_t capacity,
         ret = RET_ERR_NULL;
     } else {
         const size_t need = write_all(NULL, status);
-        if ((need + 1U) > capacity) {
+        if ((need + ECL_SER_NUL_LEN) > capacity) {
             ret = RET_ERR_SERIALIZE;
         } else {
             const size_t written = write_all(buf, status);

@@ -3,7 +3,12 @@
  * @brief   입력 조건화 컴포넌트(CMP-VAL) 구현: 형식·범위·freshness 검사, 안전 측 대체, PENDING 추적.
  * @tracing SSR-005, SSR-006, SSR-007, SSR-008, SSR-020, SSR-021, SSR-022, SSR-023, SSR-025, SSR-029, SSR-032, SSR-004, SSR-031
  *
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 #include "ecl_val.h"
 
@@ -32,7 +37,12 @@ typedef struct {
 /**
  * @brief  v가 boolean(0 또는 1)인지 판정한다.
  * @tracing SSR-005
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int is_bool(int v)
 {
@@ -48,7 +58,12 @@ static int is_bool(int v)
 /**
  * @brief  v가 [lo, hi] 열거 범위인지 판정한다(누락 센티널은 범위 밖).
  * @tracing SSR-005
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int in_enum(int v, int lo, int hi)
 {
@@ -64,7 +79,12 @@ static int in_enum(int v, int lo, int hi)
 /**
  * @brief  속도가 유한하고 0.0 이상 300.0 이하인지 판정한다.
  * @tracing SSR-005
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int speed_ok(double v)
 {
@@ -80,7 +100,12 @@ static int speed_ok(double v)
 /**
  * @brief  source_timestamp_s가 유한하고 0 이상 평가 시각 이하인지 판정한다.
  * @tracing SSR-005
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int src_ts_ok(double src, double now)
 {
@@ -96,7 +121,12 @@ static int src_ts_ok(double src, double now)
 /**
  * @brief  boolean 입력 9종의 형식을 검사하여 validity를 채우고 INVALID 개수를 반환한다.
  * @tracing SSR-005, SSR-006
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int check_bool_signals(const ecl_snapshot_t *snap, ecl_validity_t validity[ECL_SIG_COUNT])
 {
@@ -123,7 +153,12 @@ static int check_bool_signals(const ecl_snapshot_t *snap, ecl_validity_t validit
  * @brief  속도, 기어, source_timestamp_s, crash_status의 형식·범위를 검사한다.
  *         대체 대상이 아닌 기어(SSR-026)를 제외한 INVALID 개수를 반환한다.
  * @tracing SSR-005, SSR-006
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int check_other_signals(const ecl_snapshot_t *snap, ecl_validity_t validity[ECL_SIG_COUNT])
 {
@@ -142,7 +177,12 @@ static int check_other_signals(const ecl_snapshot_t *snap, ecl_validity_t validi
  *         STALE = source_timestamp_s INVALID(SSR-029), timestamp_s − source_timestamp_s > 0.200 s(SSR-007),
  *         또는 마지막 수신 평가 이후 경과가 0.200 s 초과(SSR-008, 스냅샷이 없는 호출 포함).
  * @tracing SSR-007, SSR-008, SSR-029
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int evaluate_staleness(const ecl_val_t *val, const ecl_snapshot_t *snap, ecl_validity_t validity[ECL_SIG_COUNT])
 {
@@ -170,7 +210,12 @@ static int evaluate_staleness(const ecl_val_t *val, const ecl_snapshot_t *snap, 
 /**
  * @brief  boolean 입력의 효과 값: VALID는 값, INVALID는 invalid_default, STALE은 0.
  * @tracing SSR-020, SSR-021, SSR-022, SSR-025
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int bool_effective(int value, ecl_validity_t validity, int invalid_default)
 {
@@ -188,7 +233,12 @@ static int bool_effective(int value, ecl_validity_t validity, int invalid_defaul
 /**
  * @brief  접근위험 입력의 효과 값: VALID와 STALE은 입력 값 그대로(STALE이어도 TRUE이면 LOCK 유지, SSR-011), INVALID는 TRUE(SSR-020).
  * @tracing SSR-011, SSR-020
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int approach_effective(int value, ecl_validity_t validity)
 {
@@ -204,7 +254,12 @@ static int approach_effective(int value, ecl_validity_t validity)
 /**
  * @brief  속도 입력의 효과 값: INVALID는 이동(SSR-023), VALID는 3.0 km/h 이상일 때 이동, STALE은 0.
  * @tracing SSR-023, SRQ-FUN-009
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int speed_moving_of(const ecl_snapshot_t *snap, ecl_validity_t validity)
 {
@@ -220,9 +275,14 @@ static int speed_moving_of(const ecl_snapshot_t *snap, ecl_validity_t validity)
 }
 
 /**
- * @brief  입력별 안전 측 대체를 적용한 효과 값을 계산한다(SSR-020~023, 025).
+ * @brief  입력별 안전 측 대체를 적용한 효과 값을 계산한다(SSR-020~023, 025). crash_status CONFIRMED는 형식이 유효하면(VALID 또는 STALE) 인정한다(DEC-011 요구사항 트랙, SSR-001).
  * @tracing SSR-011, SSR-020, SSR-021, SSR-022, SSR-023, SSR-025
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static effective_t compute_effective(const ecl_snapshot_t *snap, const ecl_validity_t validity[ECL_SIG_COUNT])
 {
@@ -237,7 +297,7 @@ static effective_t compute_effective(const ecl_snapshot_t *snap, const ecl_valid
     eff.overtemp = bool_effective(snap->overtemperature_detected, validity[ECL_SIG_OVERTEMP], ECL_FLAG_CLEAR);
     eff.adult = bool_effective(snap->adult_present, validity[ECL_SIG_ADULT], ECL_FLAG_CLEAR);
     eff.ignition_off = ((validity[ECL_SIG_IGNITION] == ECL_VALID) && (snap->ignition_on == 0)) ? ECL_FLAG_SET : ECL_FLAG_CLEAR;
-    eff.crash_confirmed = ((validity[ECL_SIG_CRASH] == ECL_VALID) && (snap->crash_status == (int)ECL_CRASH_CONFIRMED))
+    eff.crash_confirmed = ((validity[ECL_SIG_CRASH] != ECL_INVALID) && (snap->crash_status == (int)ECL_CRASH_CONFIRMED))
                               ? ECL_FLAG_SET : ECL_FLAG_CLEAR;
     eff.speed_moving = speed_moving_of(snap, validity[ECL_SIG_SPEED]);
 
@@ -247,7 +307,12 @@ static effective_t compute_effective(const ecl_snapshot_t *snap, const ecl_valid
 /**
  * @brief  PENDING 지속 시간을 추적하고 유지 여부(1: 유지)를 반환한다. 1.0 s 초과의 첫 판정에서는 in->pending_timeout_first를 설정한다.
  * @tracing SSR-003, SSR-004, SSR-031
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static int track_pending(ecl_val_t *val, const ecl_snapshot_t *snap, ecl_validity_t crash_validity, ecl_inputs_t *in)
 {
@@ -278,7 +343,12 @@ static int track_pending(ecl_val_t *val, const ecl_snapshot_t *snap, ecl_validit
 /**
  * @brief  P2~P4 유지 조건의 이유코드를 결정한다(sensor_fault > PENDING > STALE > crash/ignition INVALID).
  * @tracing SSR-027, SSR-024
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static ecl_reason_t derive_hold(const ecl_inputs_t *in, int pending_hold)
 {
@@ -300,7 +370,12 @@ static ecl_reason_t derive_hold(const ecl_inputs_t *in, int pending_hold)
 /**
  * @brief  스냅샷으로부터 조건화된 입력을 만들어 반환한다(PENDING 추적 상태만 갱신한다).
  * @tracing SSR-005, SSR-006, SSR-007, SSR-008, SSR-029, SSR-032
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 static ecl_inputs_t build_inputs(ecl_val_t *val, const ecl_snapshot_t *snap)
 {
@@ -331,7 +406,12 @@ static ecl_inputs_t build_inputs(ecl_val_t *val, const ecl_snapshot_t *snap)
 /**
  * @brief  컨텍스트를 초기화한다.
  * @tracing SSR-007
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 ecl_ret_t ecl_val_init(ecl_val_t *val)
 {
@@ -349,7 +429,12 @@ ecl_ret_t ecl_val_init(ecl_val_t *val)
 /**
  * @brief  스냅샷을 검사·대체하여 조건화된 입력을 만든다. 평가 시각은 snap->timestamp_s이다.
  * @tracing SSR-005, SSR-006, SSR-007, SSR-008, SSR-020, SSR-021, SSR-022, SSR-023, SSR-025, SSR-029, SSR-032, SSR-004, SSR-031
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 ecl_ret_t ecl_val_condition(ecl_val_t *val, const ecl_snapshot_t *snap, ecl_inputs_t *out)
 {
@@ -372,7 +457,12 @@ ecl_ret_t ecl_val_condition(ecl_val_t *val, const ecl_snapshot_t *snap, ecl_inpu
  * @brief  스냅샷 없는 평가(틱)의 조건화된 입력을 만든다. 마지막 스냅샷을 수신 당시의 지연(timestamp_s − source_timestamp_s)을
  *         유지한 채 재사용하며, 마지막 수신 후 경과 0.200 s 초과이면 STALE이다(SSR-008).
  * @tracing SSR-008
- * @@HITL@@
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
  */
 ecl_ret_t ecl_val_condition_tick(ecl_val_t *val, double now_s, ecl_inputs_t *out)
 {

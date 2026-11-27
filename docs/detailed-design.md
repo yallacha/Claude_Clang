@@ -56,7 +56,7 @@
 
 | 함수 | 설계 |
 |---|---|
-| `ecl_cmd_interpret`(공개) | `present`=raw->present(0/1만 인정, 그 외 0). present이면 `side∈[LEFT..ALL]`, `action∈[LOCK_CMD..UNLOCK_CMD]`, `source∈[PHYSICAL_BUTTON..MOBILE_APP]`이고 `ECL_ABSENT`가 아니면 `valid`=1, 아니면 `rejected`=1. NULL→`RET_ERR_NULL` |
+| `ecl_cmd_interpret`(공개) | `present`가 0이면 명령 없음(present=0, valid=0, rejected=0). 0이 아니면 `present`=1로 보고, raw `present`가 1이고 `side∈[LEFT..ALL]`, `action∈[LOCK..UNLOCK]`, `source∈[PHYSICAL_BUTTON..MOBILE_APP]`이며 `ECL_ABSENT`가 아니면 `valid`=1, 아니면 `rejected`=1(raw `present`가 0/1 밖이면 형식 오류로 거절, DEC-013). NULL→`RET_ERR_NULL` |
 | `field_ok`(static) | `(v != ECL_ABSENT) && (v >= lo) && (v <= hi)` |
 
 ### 3.3 ecl_ovr (CMP-OVR)
@@ -111,7 +111,7 @@
 | 함수 | 설계 |
 |---|---|
 | `ecl_core_init` | 각 하위 `*_init` 호출, status 초기화 |
-| `ecl_core_evaluate` | NULL→`RET_ERR_NULL`; `ecl_val_condition(&val, snap, snap->timestamp_s, &inputs)` 후 `run_pipeline(core, &inputs, snap->timestamp_s)` |
+| `ecl_core_evaluate` | NULL→`RET_ERR_NULL`; `ecl_val_condition(&val, snap, &inputs)` 후 `run_pipeline(core, &inputs, snap->timestamp_s)` |
 | `ecl_core_tick` | `ecl_val_condition_tick` 후 `run_pipeline` |
 | `run_pipeline`(static) | `ecl_cmd_interpret` → `ecl_ovr_update` → `ecl_arb_decide`(prev=`status.lock`) → `ecl_sta_decide` → `build_status` → `log_if_changed` → `status`=새 상태 |
 | `build_status`(static) | decision, state, inputs.validity, ovr.override, decision.command_rejected를 `ecl_status_t`로 조립 |
@@ -128,17 +128,17 @@
 
 | 요구사항 | 컴포넌트 | 모듈 | 함수 |
 |---|---|---|---|
-| SSR-005, 006, 032 | CMP-VAL | ecl_val | `check_signals`, `ecl_val_condition` |
-| SSR-007, 008, 029 | CMP-VAL | ecl_val | `judge_stale`, `ecl_val_condition_tick` |
-| SSR-020~023, 025 | CMP-VAL | ecl_val | `apply_substitution` |
+| SSR-005, 006, 032 | CMP-VAL | ecl_val | `check_bool_signals`, `check_other_signals`, `build_inputs`, `ecl_val_condition` |
+| SSR-007, 008, 029 | CMP-VAL | ecl_val | `evaluate_staleness`, `ecl_val_condition_tick` |
+| SSR-001(STALE 중 CONFIRMED 인정), SSR-011, SSR-020~023, 025 | CMP-VAL | ecl_val | `compute_effective`, `approach_effective`, `bool_effective`, `speed_moving_of` |
 | SSR-004, 031, 034 | CMP-VAL | ecl_val | `track_pending`, `derive_hold` |
 | SRQ-FUN-001, 007, 008, 031 | CMP-CMD | ecl_cmd | `ecl_cmd_interpret` |
 | SRQ-FUN-017, 019, 020, 033~035, SSR-015, 035 | CMP-OVR | ecl_ovr | `update_door`, `apply_request` |
-| SSR-001, 002 | CMP-ARB | ecl_arb | `decide_crash` |
+| SSR-001, 002 | CMP-ARB | ecl_arb | `ecl_arb_decide`(P1 분기) |
 | SSR-003, 009(유지), 010, 016, 017, 024, 036, 037, 033 | CMP-ARB | ecl_arb | `decide_hold`, 이유코드 선택 |
 | SSR-011~014, 019 | CMP-ARB | ecl_arb | `decide_rules`(P5), `decide_hold` |
 | SSR-027 | CMP-ARB | ecl_arb | `ecl_arb_decide`, `decide_rules`, `merge_reason` |
-| SRQ-FUN-002~006, 009~014, 016, 018, 021, 032, 038, SSR-021(ISOFIX LOCK), 013 | CMP-ARB | ecl_arb | `decide_rules`, `fire_reason`, `apply_reject` |
+| SRQ-FUN-002~006, 009~014, 016, 018, 021, 032, 038, SSR-021(ISOFIX LOCK), 013 | CMP-ARB | ecl_arb | `decide_rules`, `apply_input_rules`, `apply_driver`, `fire_reason`, `ecl_arb_decide`(P11 보조 코드) |
 | SSR-009, 018, 026, 028, 030, SRQ-FUN-015 | CMP-STA | ecl_sta | `ecl_sta_decide` |
 | SRQ-FUN-027, 028, 030, 037, 039, SRQ-LIM-001, 003 | CMP-LOG | ecl_log | `ecl_log_*` |
 | SRQ-FUN-023, SRQ-QUA-FUN-001(형식) | CMP-SER | ecl_ser | `ecl_ser_status` |
@@ -149,7 +149,12 @@
 1. STALE일 때 효과 값은 접근위험(입력 값 그대로)을 제외하고 모두 0이며, 출력은 직전 확정 출력을 유지하되 **접근위험 TRUE 도어는 LOCK**이다(SSR-011). STALE 중 접근위험 FALSE 입력은 최신 값으로 믿을 수 없으나 새 LOCK 근거가 없으므로 직전 출력을 유지한다.
 2. 틱은 새 스냅샷이 없을 때 마지막 스냅샷의 조건화 결과를 재사용하며 명령은 없다. STALE 판정은 마지막 수신 평가 이후 경과(SSR-008)이다. 스냅샷이 있는 호출도 마지막 수신 후 0.200 s를 넘겨 도착하면 STALE이며(SSR-008의 "스냅샷이 없는 호출 포함" 해석), 다음 평가(0.010 s 후)에서 복구된다.
 3. 시간 비교 허용 오차 `ECL_TIME_EPS_S`=1e-9 s는 부동소수점 표현 오차 흡수용이며 경계(0.200, 1.0, 10.0)는 이 오차 안에서 포함/초과를 판정한다(SRS "시각 비교 규칙").
-4. `ecl_cmd_interpret`는 `present`가 0이면 명령 없음, 1이면 필드 검사, 그 밖의 값은 형식 오류로 거절한다(DEC-011).
+4. `ecl_cmd_interpret`는 `present`가 0이면 명령 없음, 1이면 필드 검사, 그 밖의 값은 형식 오류로 거절한다(DEC-013).
 5. 모듈 내부 함수가 `ecl_ret_t`를 반환하고 호출자가 `RET_OK`를 확인해 전파하는 것은 방어적 설계이며, 현재 내부 호출은 NULL이 아닌 인자만 받으므로 오류 분기는 도달하지 않는다(단위 시험은 분기가 아닌 MC/DC 대상 조건으로 측정).
 6. 컨텍스트 구조체의 필드는 비공개 관례이며 시험은 `ecl_core_test_get_log`(시험 빌드 전용)로만 하위 컨텍스트에 접근한다. 제품 빌드에는 시험용 접근자가 없다(INS: `ci/inspection.sh` SRQ-FUN-039).
 7. `door_requested`(OVR)와 `driver_applies`(ARB)는 판정 대상이 다르다(전자는 unlock만, 후자는 lock/unlock 모두). 같은 `cmd` 구조를 읽지만 책임이 달라 공통화하지 않았다.
+8. **틱에서도 PENDING 타임아웃을 판정한다**: 틱은 마지막 스냅샷의 crash_status가 계속된다고 보고 같은 `build_inputs`를 거치므로, PENDING 1.0 s 초과의 첫 판정이 틱 평가에서 일어날 수 있고 그 평가에서 `RC_CRASH_PENDING_TIMEOUT`을 기록한다(SSR-031).
+9. **crash_status CONFIRMED는 freshness와 무관하게 형식이 유효하면(VALID 또는 STALE) 인정**하여 두 도어를 RELEASE한다(요구사항 트랙 DEC-011 (1), SSR-001). 다른 신호의 오래됨이 충돌 해제를 막지 않는다.
+10. **첫 수신 전 틱**: 입력이 한 번도 없었으므로 `now_s − 0.0 > 0.200 s`이면 STALE이고 13개 신호를 모두 STALE로 보고한다(수신한 값이 없는 상태에서 "유효였던 신호"가 없으므로 SRS 정의의 예외이다. SRS 보완 필요 시 `OI-004`와 함께 처리).
+11. **틱 STALE 기준의 합집합**: 틱은 수신 당시의 지연(timestamp_s − source_timestamp_s)을 유지한 채 마지막 수신 후 경과를 본다. 따라서 수신 시점에 이미 STALE이던 스냅샷은 다음 틱에서도 STALE이고, 마지막 수신 후 0.200 s를 넘기면 STALE이다(두 기준의 합집합). SSR-008 본문에 이 합집합을 반영할지는 사용자 결정 대기이다(요구사항 트랙 DEC-011 (5)).
+12. 프로덕션 코드의 `(void)memset/memcpy/strcpy/strcat`은 표준 라이브러리가 돌려주는 포인터를 쓰지 않아서이며 반환값으로 판단할 정보가 없다. `ecl_ser.c`의 `strcpy/strcat`은 `key[ECL_SER_KEY_MAX]`(40)에 접두어 9자와 신호 이름(최대 13자)만 쓰므로 길이가 컴파일 시점에 22자 이하로 정해져 있다.

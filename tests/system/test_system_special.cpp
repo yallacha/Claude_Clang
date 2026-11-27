@@ -400,7 +400,9 @@ TEST(SystemSpecial, TcNf003NullArgumentsOnPublicApi)
     EXPECT_EQ(-1, static_cast<int>(ecl_core_query_events(&core, ev, 1, nullptr)));
     EXPECT_EQ('x', buf[0]);
     EXPECT_EQ(77U, n);
-    EXPECT_EQ(0x5A5A5A5A, static_cast<int>(*reinterpret_cast<const unsigned int *>(&st)));
+    ecl_status_t reference;
+    std::memset(&reference, 0x5A, sizeof(reference));
+    EXPECT_EQ(0, std::memcmp(&reference, &st, sizeof(st)));  // 출력 인자 불변
 }
 
 /**

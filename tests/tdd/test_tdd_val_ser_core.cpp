@@ -208,7 +208,8 @@ TEST(TddSer, SerializesInFixedOrderAndRejectsSmallBuffer)
     st.state = ECL_STATE_NORMAL;
     st.reason_code = RC_NONE;
     ASSERT_EQ(RET_OK, ecl_ser_status(&st, buf, sizeof(buf), &len));
-    EXPECT_EQ(0, std::strncmp(buf, "lock_left=LOCK;lock_right=RELEASE;state=NORMAL;reason_code=RC_NONE;", 66));
+    const char *const prefix = "lock_left=LOCK;lock_right=RELEASE;state=NORMAL;reason_code=RC_NONE;";
+    EXPECT_EQ(0, std::strncmp(buf, prefix, std::strlen(prefix)));
     EXPECT_EQ(std::strlen(buf), len);
     std::memset(small, 'x', sizeof(small));
     EXPECT_EQ(RET_ERR_SERIALIZE, ecl_ser_status(&st, small, sizeof(small), &len));

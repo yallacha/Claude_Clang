@@ -269,7 +269,7 @@ TEST(CoreIntegration, EventIdSaturationDoesNotStopControl)
 }
 
 /**
- * @brief   [목적] 틱으로 STALE이 된 뒤 새 스냅샷이 마지막 수신 후 0.200 s를 넘겨 도착하면 그 평가도 STALE(SSR-008)이고, 다음 격자 스냅샷에서 복구된다.
+ * @brief   [목적] 마지막 스냅샷 후 틱을 0.010 s 간격으로 호출해 STALE이 된 뒤 새 스냅샷이 마지막 수신 후 0.200 s를 넘겨 도착하면 그 평가도 STALE(SSR-008)이고, 다음 격자 스냅샷에서 복구된다.
  * @tracing SSR-008, SSR-009, SSR-010, SSR-034
  * @par Input   t=1.00 s LOCK, tick 1.21 s, 스냅샷 1.22 s, 스냅샷 1.23 s
  * @par Procedure  1. LOCK 평가 2. tick 3. 스냅샷 2회
@@ -287,7 +287,9 @@ TEST(CoreIntegration, TickStaleThenRecover)
     ecl_snapshot_t s = ecl_normal_snapshot(1.0);
     EXPECT_EQ(RET_OK, ecl_set_command(&s, ECL_SIDE_ALL, ECL_ACTION_LOCK, ECL_SRC_AVN));
     ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
-    ASSERT_EQ(RET_OK, ecl_core_tick(&core, 1.21));
+    for (int k = 1; k <= 21; k++) {  // 호출 계약(0.010 s 격자): 1.01~1.21 s 틱
+        ASSERT_EQ(RET_OK, ecl_core_tick(&core, 1.0 + 0.010 * k));
+    }
     EXPECT_EQ(ECL_STATE_DEGRADED, status_of(core).state);
     EXPECT_EQ(ECL_LOCK, status_of(core).lock[0]);
     EXPECT_EQ(RC_INPUT_STALE, status_of(core).reason_code);

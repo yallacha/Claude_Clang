@@ -351,18 +351,22 @@ TEST(ValUnit, ValidInputsAreReflected)
     const ecl_inputs_t in = condition(&v, s);
     EXPECT_EQ(1, in.ignition_off);
     EXPECT_EQ(1, in.crash_confirmed);
-    EXPECT_EQ(1, in.fire + in.overtemp + in.adult - 2);
-    EXPECT_EQ(1, in.approach[0] & in.approach[1]);
-    EXPECT_EQ(1, in.isofix[0] & in.isofix[1]);
+    EXPECT_EQ(1, in.fire);
+    EXPECT_EQ(1, in.overtemp);
+    EXPECT_EQ(1, in.adult);
+    EXPECT_EQ(1, in.approach[0]);
+    EXPECT_EQ(1, in.approach[1]);
+    EXPECT_EQ(1, in.isofix[0]);
+    EXPECT_EQ(1, in.isofix[1]);
     EXPECT_EQ(0, in.substituted);
 }
 
 /**
- * @brief   [목적] STALE 입력은 효과 값에 반영되지 않는다(0).
- * @tracing SSR-007
+ * @brief   [목적] STALE 입력은 효과 값에 반영되지 않는다(0). 단 crash_status CONFIRMED는 freshness와 무관하게 형식이 유효하면 인정한다(SSR-001, DEC-011 요구사항 트랙).
+ * @tracing SSR-007, SSR-001
  * @par Input   stale 스냅샷에서 ignition_on=0, crash=CONFIRMED, speed=50
  * @par Procedure  1. condition
- * @par Expected   ignition_off=0, crash_confirmed=0, speed_moving=0
+ * @par Expected   ignition_off=0, crash_confirmed=1(STALE이어도 CONFIRMED 인정), speed_moving=0
  * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
  * @authored_at   2026-11-27
  * @requested_by  Heechang Jang
@@ -380,7 +384,7 @@ TEST(ValUnit, StaleInputsAreNotReflected)
     s.vehicle_speed_kph = 50.0;
     const ecl_inputs_t in = condition(&v, s);
     EXPECT_EQ(0, in.ignition_off);
-    EXPECT_EQ(0, in.crash_confirmed);
+    EXPECT_EQ(1, in.crash_confirmed);
     EXPECT_EQ(0, in.speed_moving);
 }
 
