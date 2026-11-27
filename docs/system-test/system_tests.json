@@ -1,0 +1,4105 @@
+{
+  "title": "전자식 차일드락 제어 SW 시스템 테스트 명세 (SWE.6)",
+  "basis_document": "docs/SRS.md v0.3, docs/safety-requirements.md v0.3 (SRS-ECL-001, SSR-ECL-001), OEM-SWR-001 Rev 1.0 입력",
+  "requirements": [
+    {
+      "id": "SRQ-FUN-001",
+      "title": "SW는 side(left, right, all), action(lock, unlock), ",
+      "text": "SW는 side(left, right, all), action(lock, unlock), source(physical_button, avn, voice, mobile_app)로 구성된 운전자 명령을 수신해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-002",
+      "title": "SW는 lock 명령이 적용되면 선택된 side의 출력을 LOCK으로 해야 한다.",
+      "text": "SW는 lock 명령이 적용되면 선택된 side의 출력을 LOCK으로 해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-003",
+      "title": "SW는 정지 상태에서 unlock 명령이 적용되면 선택된 side의 출력을 RELEASE로",
+      "text": "SW는 정지 상태에서 unlock 명령이 적용되면 선택된 side의 출력을 RELEASE로 해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-004",
+      "title": "SW는 이동 중(속도 3.0 이상 또는 속도 INVALID)에는 unlock 명령으로 출력",
+      "text": "SW는 이동 중(속도 3.0 이상 또는 속도 INVALID)에는 unlock 명령으로 출력을 RELEASE로 바꾸지 않아야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-FUN-005",
+      "title": "SW는 이동 중 유효한 unlock 명령을 받은 평가에서 우선순위 P8이 선택되면 이유코드",
+      "text": "SW는 이동 중 유효한 unlock 명령을 받은 평가에서 우선순위 P8이 선택되면 이유코드를 `RC_UNLOCK_DENIED_MOVING`으로 기록해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-006",
+      "title": "SW는 운전자 명령이 선택하지 않은 side의 출력을 그 명령으로 변경하지 않아야 한다.",
+      "text": "SW는 운전자 명령이 선택하지 않은 side의 출력을 그 명령으로 변경하지 않아야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-007",
+      "title": "SW는 side, action, source 중 하나라도 누락되었거나 형식이 틀렸거나 미등",
+      "text": "SW는 side, action, source 중 하나라도 누락되었거나 형식이 틀렸거나 미등록 값인 명령을 거절해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-031",
+      "title": "SW는 거절한 명령으로 출력을 변경하지 않아야 한다.",
+      "text": "SW는 거절한 명령으로 출력을 변경하지 않아야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-008",
+      "title": "SW는 명령을 거절한 평가에서 command_rejected를 TRUE로 해야 한다.",
+      "text": "SW는 명령을 거절한 평가에서 command_rejected를 TRUE로 해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-038",
+      "title": "SW는 명령을 거절한 평가에서 우선순위 P1~P9가 이유코드를 선택하지 않았으면 reaso",
+      "text": "SW는 명령을 거절한 평가에서 우선순위 P1~P9가 이유코드를 선택하지 않았으면 reason_code를 `RC_COMMAND_REJECTED`로 기록해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-009",
+      "title": "SW는 유효한 vehicle_speed_kph가 3.0 이상인 평가에서 자동 잠금이 적용되",
+      "text": "SW는 유효한 vehicle_speed_kph가 3.0 이상인 평가에서 자동 잠금이 적용되면 좌, 우 출력을 LOCK으로 해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-FUN-010",
+      "title": "SW는 fire_detected, overtemperature_detected, adult",
+      "text": "SW는 fire_detected, overtemperature_detected, adult_present 중 하나가 유효한 TRUE이면 강제 해제가 적용될 때 접근위험으로 LOCK이 선택되지 않은 도어의 출력을 RELEASE로 해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-011",
+      "title": "SW는 강제 해제 시 이유코드를 입력별로 `RC_FIRE`, `RC_OVERTEMP`, `",
+      "text": "SW는 강제 해제 시 이유코드를 입력별로 `RC_FIRE`, `RC_OVERTEMP`, `RC_ADULT_PRESENT`로 기록해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-032",
+      "title": "SW는 fire_detected, overtemperature_detected, adult",
+      "text": "SW는 fire_detected, overtemperature_detected, adult_present 중 둘 이상이 동시에 TRUE이면 fire, overtemperature, adult 순서로 하나의 이유코드를 기록해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-012",
+      "title": "SW는 isofix_left 또는 isofix_right가 유효한 TRUE이면 ISOFIX",
+      "text": "SW는 isofix_left 또는 isofix_right가 유효한 TRUE이면 ISOFIX 잠금이 적용될 때 TRUE인 쪽 출력을 LOCK으로 해야 한다(둘 다 TRUE이면 둘 다 LOCK).",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-013",
+      "title": "SW는 FALSE인 쪽 출력을 ISOFIX 규칙으로 변경하지 않아야 한다.",
+      "text": "SW는 FALSE인 쪽 출력을 ISOFIX 규칙으로 변경하지 않아야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-014",
+      "title": "SW는 ignition_on이 유효한 FALSE이면 시동 OFF 규칙이 적용될 때 좌, 우",
+      "text": "SW는 ignition_on이 유효한 FALSE이면 시동 OFF 규칙이 적용될 때 좌, 우 출력을 RELEASE로 해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-015",
+      "title": "SW는 시동 OFF 규칙이 성립할 때 state를 OFF로 해야 한다(상태 결정은 SSR-",
+      "text": "SW는 시동 OFF 규칙이 성립할 때 state를 OFF로 해야 한다(상태 결정은 SSR-028, SSR-030).",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-016",
+      "title": "SW는 시동 OFF 규칙이 적용된 평가에서 이유코드를 `RC_IGNITION_OFF`로 기",
+      "text": "SW는 시동 OFF 규칙이 적용된 평가에서 이유코드를 `RC_IGNITION_OFF`로 기록해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-017",
+      "title": "SW는 접근위험으로 해제가 억제된 도어에 같은 해제 명령이 첫 억제 시각부터 10.0 s ",
+      "text": "SW는 접근위험으로 해제가 억제된 도어에 같은 해제 명령이 첫 억제 시각부터 10.0 s 이하(경계 포함)에 재입력되면 override로 판정해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-FUN-018",
+      "title": "SW는 override로 판정되어도 접근위험 TRUE인 도어의 출력을 LOCK으로 유지해야",
+      "text": "SW는 override로 판정되어도 접근위험 TRUE인 도어의 출력을 LOCK으로 유지해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-019",
+      "title": "SW는 override 판정 시 해당 도어의 override 상태를 TRUE로 해야 한다.",
+      "text": "SW는 override 판정 시 해당 도어의 override 상태를 TRUE로 해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-033",
+      "title": "SW는 override 판정 시 이유코드를 `RC_OVERRIDE_ACK`로 기록해야 한다",
+      "text": "SW는 override 판정 시 이유코드를 `RC_OVERRIDE_ACK`로 기록해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-034",
+      "title": "SW는 도어의 override 상태를 접근위험이 유효한 FALSE가 되었거나 첫 억제 시각",
+      "text": "SW는 도어의 override 상태를 접근위험이 유효한 FALSE가 되었거나 첫 억제 시각부터 10.0 s를 초과한 평가에서 FALSE로 되돌려야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-FUN-020",
+      "title": "SW는 첫 억제 시각부터 10.0 s를 초과하여 재입력된 해제 명령을 일반 억제된 해제 요",
+      "text": "SW는 첫 억제 시각부터 10.0 s를 초과하여 재입력된 해제 명령을 일반 억제된 해제 요청으로 처리해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-FUN-035",
+      "title": "SW는 10.0 s 초과 후 억제된 해제 요청이 발생하면 첫 억제 시각을 그 평가의 `ti",
+      "text": "SW는 10.0 s 초과 후 억제된 해제 요청이 발생하면 첫 억제 시각을 그 평가의 `timestamp_s`로 갱신해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-FUN-021",
+      "title": "SW는 매 평가마다 lock_left와 lock_right를 각각 LOCK 또는 RELEA",
+      "text": "SW는 매 평가마다 lock_left와 lock_right를 각각 LOCK 또는 RELEASE로 출력해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-022",
+      "title": "SW는 상태 조회에 lock_left, lock_right, state, 입력별 input",
+      "text": "SW는 상태 조회에 lock_left, lock_right, state, 입력별 input_validity(VALID, INVALID, STALE), reason_code(= priority_reason), 도어별 override, command_rejected를 포함해 응답해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-023",
+      "title": "SW는 상태 응답 직렬화에 실패하면 오류코드 `RET_ERR_SERIALIZE`(-2)를 ",
+      "text": "SW는 상태 응답 직렬화에 실패하면 오류코드 `RET_ERR_SERIALIZE`(-2)를 반환해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-024",
+      "title": "표시 계층(Web)은 코어가 `RET_ERR_SERIALIZE`를 반환하면 HTTP 500",
+      "text": "표시 계층(Web)은 코어가 `RET_ERR_SERIALIZE`를 반환하면 HTTP 500으로 응답해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-025",
+      "title": "표시 계층(Web)은 상태 응답의 출력, state, 입력 유효성, 이유코드를 사용자에게 ",
+      "text": "표시 계층(Web)은 상태 응답의 출력, state, 입력 유효성, 이유코드를 사용자에게 표시해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-026",
+      "title": "SW는 첫 평가 전의 초기 출력을 두 도어 모두 RELEASE로 해야 한다.",
+      "text": "SW는 첫 평가 전의 초기 출력을 두 도어 모두 RELEASE로 해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-036",
+      "title": "SW는 첫 평가 전의 초기 state를 OFF로 해야 한다.",
+      "text": "SW는 첫 평가 전의 초기 state를 OFF로 해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-027",
+      "title": "SW는 평가 결과의 lock_left, lock_right, state, reason_co",
+      "text": "SW는 평가 결과의 lock_left, lock_right, state, reason_code 중 하나라도 직전 평가와 다르거나 command_rejected가 TRUE인 평가마다 이벤트를 1건 기록해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-028",
+      "title": "SW는 이벤트 ID를 1부터 시작하여 기록마다 1씩 증가하는 64비트 부호 없는 정수로 부",
+      "text": "SW는 이벤트 ID를 1부터 시작하여 기록마다 1씩 증가하는 64비트 부호 없는 정수로 부여해야 한다(최댓값 2^64−1 이후는 SRQ-FUN-037).",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-FUN-037",
+      "title": "SW는 이벤트 ID가 2^64−1인 이벤트를 기록한 뒤에는 새 이벤트를 기록하지 않아야 한",
+      "text": "SW는 이벤트 ID가 2^64−1인 이벤트를 기록한 뒤에는 새 이벤트를 기록하지 않아야 한다(ID 유일성 유지). 기록하지 않은 사실을 알리는 필드·이유코드는 두지 않는다(`OI-022`).",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-FUN-039",
+      "title": "SW는 시험 빌드에서 이벤트 ID 카운터의 값(마지막으로 부여한 ID)을 설정하는 시험용 ",
+      "text": "SW는 시험 빌드에서 이벤트 ID 카운터의 값(마지막으로 부여한 ID)을 설정하는 시험용 접근자를 제공해야 한다. 시험 빌드는 전처리 매크로 `ECL_TEST_BUILD`를 정의한 빌드이다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-029",
+      "title": "SW는 이벤트에 event_id, timestamp_s, lock_left, lock_ri",
+      "text": "SW는 이벤트에 event_id, timestamp_s, lock_left, lock_right, state, reason_code, command_rejected, 입력별 input_validity 필드만 포함해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-FUN-030",
+      "title": "SW는 이벤트 조회 시 보존된 최신 최대 100건을 event_id 오름차순으로 반환해야 ",
+      "text": "SW는 이벤트 조회 시 보존된 최신 최대 100건을 event_id 오름차순으로 반환해야 한다.",
+      "category": "functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-QUA-FUN-001",
+      "title": "SW는 동일한 입력 순서와 초기 상태에 대해 동일한 공개 결과를 생성해야 한다.",
+      "text": "SW는 동일한 입력 순서와 초기 상태에 대해 동일한 공개 결과를 생성해야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": false,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-QUA-REL-001",
+      "title": "SW의 공개 함수는 NULL 포인터 인자를 받으면 오류코드 `RET_ERR_NULL`(-1",
+      "text": "SW의 공개 함수는 NULL 포인터 인자를 받으면 오류코드 `RET_ERR_NULL`(-1)을 반환해야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-LIM-001",
+      "title": "SW는 이벤트를 프로세스 메모리에만 보존해야 한다.",
+      "text": "SW는 이벤트를 프로세스 메모리에만 보존해야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": false,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-LIM-003",
+      "title": "SW는 이벤트가 100건을 넘으면 가장 오래된 1건을 삭제해야 한다.",
+      "text": "SW는 이벤트가 100건을 넘으면 가장 오래된 1건을 삭제해야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": false,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-LIM-002",
+      "title": "SW는 SSR의 시간 규칙(0.200 s, 1.0 s, 10.0 s 경계)을 평가 호출 횟",
+      "text": "SW는 SSR의 시간 규칙(0.200 s, 1.0 s, 10.0 s 경계)을 평가 호출 횟수가 아니라 호출자가 주입한 `timestamp_s`·`source_timestamp_s`의 차이로 판정해야 한다. 평가 호출이 0.010 s 간격으로 이루어진다는 호출 계약은 호출자의 책임이다(`OI-003`).",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": false,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-LIM-004",
+      "title": "SW는 평가 호출 1회를 0.010 s 미만에 완료해야 한다.",
+      "text": "SW는 평가 호출 1회를 0.010 s 미만에 완료해야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": false,
+      "has_ranges": true
+    },
+    {
+      "id": "SRQ-CON-001",
+      "title": "제품 코어는 C 언어(C11)로 `src/`에 구현해야 한다. **가정: OEM 편차 확인",
+      "text": "제품 코어는 C 언어(C11)로 `src/`에 구현해야 한다. **가정: OEM 편차 확인 대기**",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": false,
+      "has_inputs": false,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-CON-008",
+      "title": "표시 계층 서버는 C 언어(C11)로 `src/`에 구현해야 한다.",
+      "text": "표시 계층 서버는 C 언어(C11)로 `src/`에 구현해야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": false,
+      "has_inputs": false,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-CON-009",
+      "title": "표시 계층은 HTML을 C 코드로 생성하여 응답하고 클라이언트 측 스크립트(JavaScri",
+      "text": "표시 계층은 HTML을 C 코드로 생성하여 응답하고 클라이언트 측 스크립트(JavaScript)를 포함하지 않아야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-CON-002",
+      "title": "SW는 시각을 호출자가 주입한 `timestamp_s`로만 얻어야 한다.",
+      "text": "SW는 시각을 호출자가 주입한 `timestamp_s`로만 얻어야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": false,
+      "has_inputs": false,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-CON-005",
+      "title": "SW는 시스템 시계를 읽지 않아야 한다.",
+      "text": "SW는 시스템 시계를 읽지 않아야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": false,
+      "has_inputs": false,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-CON-003",
+      "title": "SW는 영상, 음성 원본과 개인 식별자를 입력으로 받지 않아야 한다.",
+      "text": "SW는 영상, 음성 원본과 개인 식별자를 입력으로 받지 않아야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": false,
+      "has_inputs": false,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-CON-006",
+      "title": "SW는 영상, 음성 원본과 개인 식별자를 저장하지 않아야 한다.",
+      "text": "SW는 영상, 음성 원본과 개인 식별자를 저장하지 않아야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": false,
+      "has_inputs": false,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-CON-007",
+      "title": "SW는 성인 존재를 boolean 1개 필드로만 표현해야 한다.",
+      "text": "SW는 성인 존재를 boolean 1개 필드로만 표현해야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": false,
+      "has_inputs": false,
+      "has_ranges": false
+    },
+    {
+      "id": "SRQ-CON-004",
+      "title": "SW는 도어 래치/구동기 HW를 직접 구동하지 않아야 한다.",
+      "text": "SW는 도어 래치/구동기 HW를 직접 구동하지 않아야 한다.",
+      "category": "non-functional",
+      "asil": "QM",
+      "testable": false,
+      "has_inputs": false,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-001",
+      "title": "SW는 유효한 crash_status가 CONFIRMED이면 다른 모든 명령(운전자 명령 ",
+      "text": "SW는 유효한 crash_status가 CONFIRMED이면 다른 모든 명령(운전자 명령 포함)보다 우선하여 좌, 우 출력을 RELEASE로 해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-002",
+      "title": "SW는 crash_status가 CONFIRMED인 동안 이후 모든 평가에서 좌, 우 출력",
+      "text": "SW는 crash_status가 CONFIRMED인 동안 이후 모든 평가에서 좌, 우 출력을 RELEASE로 유지해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-003",
+      "title": "SW는 crash_status가 PENDING(지속 ≤ 1.0 s)이면 SSR-027의 P",
+      "text": "SW는 crash_status가 PENDING(지속 ≤ 1.0 s)이면 SSR-027의 P3에 따라 접근위험 도어를 제외한 도어의 출력을 직전 확정 출력으로 유지해야 한다(접근위험 도어는 SSR-011).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SSR-036",
+      "title": "SW는 PENDING 유지(SSR-003)가 적용된 평가에서 이유코드를 `RC_CRASH_",
+      "text": "SW는 PENDING 유지(SSR-003)가 적용된 평가에서 이유코드를 `RC_CRASH_PENDING_HOLD`로 기록해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SSR-004",
+      "title": "SW는 PENDING 지속이 1.0 s를 초과하면 SSR-003의 유지를 적용하지 않고 출",
+      "text": "SW는 PENDING 지속이 1.0 s를 초과하면 SSR-003의 유지를 적용하지 않고 출력을 SSR-027 P5~P10의 일반 중재로 정해야 한다(PENDING 지속의 시작은 SRS 용어집).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SSR-031",
+      "title": "SW는 PENDING 지속이 1.0 s를 초과했음을 처음 판정한 평가에서만 이유코드를 `R",
+      "text": "SW는 PENDING 지속이 1.0 s를 초과했음을 처음 판정한 평가에서만 이유코드를 `RC_CRASH_PENDING_TIMEOUT`으로 기록해야 한다(P1, P2, P4의 STALE·crash/ignition INVALID 유지가 성립하지 않을 때).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SSR-005",
+      "title": "SW는 모든 필수 입력의 형식과 범위를 평가 전에 검사하여 아래 입력 유효 범위 표를 벗어",
+      "text": "SW는 모든 필수 입력의 형식과 범위를 평가 전에 검사하여 아래 입력 유효 범위 표를 벗어나거나 누락된 입력을 INVALID로 판정해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SSR-006",
+      "title": "SW는 INVALID로 판정한 입력의 input_validity를 INVALID로 보고해야",
+      "text": "SW는 INVALID로 판정한 입력의 input_validity를 INVALID로 보고해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-032",
+      "title": "SW는 INVALID로 판정한 입력의 원래 값을 결정에 사용하지 않아야 한다(대체 값은 §",
+      "text": "SW는 INVALID로 판정한 입력의 원래 값을 결정에 사용하지 않아야 한다(대체 값은 §5의 SSR-020~025, 029가 정한다).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-007",
+      "title": "SW는 평가 호출의 스냅샷에서 `timestamp_s − source_timestamp_s",
+      "text": "SW는 평가 호출의 스냅샷에서 `timestamp_s − source_timestamp_s`가 0.200 s를 초과하면 입력을 STALE로 판정해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SSR-008",
+      "title": "SW는 평가 호출의 `timestamp_s − 마지막으로 스냅샷을 수신한 평가의 times",
+      "text": "SW는 평가 호출의 `timestamp_s − 마지막으로 스냅샷을 수신한 평가의 timestamp_s`가 0.200 s를 초과하면(스냅샷이 없는 호출 포함) 입력을 STALE로 판정해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": true
+    },
+    {
+      "id": "SSR-009",
+      "title": "SW는 STALE을 판정한 평가에서 state를 DEGRADED로 해야 한다(판정 시점부터",
+      "text": "SW는 STALE을 판정한 평가에서 state를 DEGRADED로 해야 한다(판정 시점부터 0.100 s 이내 = 같은 평가, `OI-003`).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-033",
+      "title": "SW는 STALE을 판정한 평가에서 이유코드를 `RC_INPUT_STALE`로 기록해야 한",
+      "text": "SW는 STALE을 판정한 평가에서 이유코드를 `RC_INPUT_STALE`로 기록해야 한다(SSR-027의 상위 규칙이 없는 경우).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-010",
+      "title": "SW는 STALE로 DEGRADED인 동안 접근위험 도어를 제외한 도어의 출력을 직전 확정",
+      "text": "SW는 STALE로 DEGRADED인 동안 접근위험 도어를 제외한 도어의 출력을 직전 확정 출력으로 유지해야 한다(SSR-027 P4. 접근위험 도어는 SSR-011).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-034",
+      "title": "SW는 fresh이고 유효한 입력의 평가에서 DEGRADED 조건이 해소되면 즉시 해소된 ",
+      "text": "SW는 fresh이고 유효한 입력의 평가에서 DEGRADED 조건이 해소되면 즉시 해소된 상태로 복귀해야 한다(SSR-030).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-029",
+      "title": "SW는 source_timestamp_s가 INVALID이면 freshness를 판정할 수",
+      "text": "SW는 source_timestamp_s가 INVALID이면 freshness를 판정할 수 없으므로 STALE로 판정해야 한다(source_timestamp_s 자신의 input_validity는 INVALID, SSR-006).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-011",
+      "title": "SW는 후측방 접근위험이 유효한 TRUE인 도어의 출력을, 충돌 CONFIRMED(SSR-",
+      "text": "SW는 후측방 접근위험이 유효한 TRUE인 도어의 출력을, 충돌 CONFIRMED(SSR-027 P1)가 아닌 모든 평가에서 LOCK으로 해야 한다(P2~P4의 유지 규칙과 P6 강제 해제보다 우선).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-012",
+      "title": "SW는 접근위험 TRUE인 도어의 해제 요청(운전자 unlock, 시동 OFF 해제)을 억",
+      "text": "SW는 접근위험 TRUE인 도어의 해제 요청(운전자 unlock, 시동 OFF 해제)을 억제해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-013",
+      "title": "SW는 접근위험으로 LOCK 또는 해제 억제를 한 평가에서 이유코드를 `RC_APPROAC",
+      "text": "SW는 접근위험으로 LOCK 또는 해제 억제를 한 평가에서 이유코드를 `RC_APPROACH_RISK`로 기록해야 한다(SSR-027의 상위 규칙이 없는 경우).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-014",
+      "title": "SW는 접근위험을 좌, 우 도어별로 독립적으로 처리해야 한다.",
+      "text": "SW는 접근위험을 좌, 우 도어별로 독립적으로 처리해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-015",
+      "title": "SW는 접근위험 TRUE인 도어의 첫 억제 시각을 기록해야 한다.",
+      "text": "SW는 접근위험 TRUE인 도어의 첫 억제 시각을 기록해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-035",
+      "title": "SW는 접근위험이 유효한 FALSE가 되면 해당 도어의 첫 억제 시각을 삭제해야 한다.",
+      "text": "SW는 접근위험이 유효한 FALSE가 되면 해당 도어의 첫 억제 시각을 삭제해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-016",
+      "title": "SW는 sensor_fault가 TRUE(SSR-022에 따라 INVALID 포함)이면 새",
+      "text": "SW는 sensor_fault가 TRUE(SSR-022에 따라 INVALID 포함)이면 새 운전자 명령을 적용하지 않아야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-017",
+      "title": "SW는 sensor_fault가 TRUE인 평가에서 접근위험 도어를 제외한 도어의 출력을 ",
+      "text": "SW는 sensor_fault가 TRUE인 평가에서 접근위험 도어를 제외한 도어의 출력을 직전 확정 출력으로 유지해야 한다(SSR-027 P2. 접근위험 도어는 SSR-011).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-018",
+      "title": "SW는 sensor_fault가 TRUE인 첫 평가에서 state를 FAULT로 해야 한다",
+      "text": "SW는 sensor_fault가 TRUE인 첫 평가에서 state를 FAULT로 해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-019",
+      "title": "SW는 sensor_fault가 TRUE인 평가에서 경고코드 `RC_SENSOR_FAULT",
+      "text": "SW는 sensor_fault가 TRUE인 평가에서 경고코드 `RC_SENSOR_FAULT`를 제공해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-020",
+      "title": "SW는 rear_left/right_approach_risk가 INVALID이면 해당 도어",
+      "text": "SW는 rear_left/right_approach_risk가 INVALID이면 해당 도어를 접근위험 TRUE로 간주해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-021",
+      "title": "SW는 isofix_left/right가 INVALID이면 해당 도어를 ISOFIX TRU",
+      "text": "SW는 isofix_left/right가 INVALID이면 해당 도어를 ISOFIX TRUE로 간주해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-022",
+      "title": "SW는 sensor_fault가 INVALID이면 TRUE로 간주해야 한다.",
+      "text": "SW는 sensor_fault가 INVALID이면 TRUE로 간주해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-023",
+      "title": "SW는 vehicle_speed_kph가 INVALID이면 이동 중으로 간주해야 한다.",
+      "text": "SW는 vehicle_speed_kph가 INVALID이면 이동 중으로 간주해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-024",
+      "title": "SW는 crash_status 또는 ignition_on이 INVALID이면 SSR-027",
+      "text": "SW는 crash_status 또는 ignition_on이 INVALID이면 SSR-027의 P4에 따라 접근위험 도어를 제외한 도어의 출력을 직전 확정 출력으로 유지해야 한다(접근위험 도어는 SSR-011).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-037",
+      "title": "SW는 crash_status 또는 ignition_on INVALID로 출력을 유지한 평",
+      "text": "SW는 crash_status 또는 ignition_on INVALID로 출력을 유지한 평가에서 이유코드를 `RC_INPUT_INVALID`로 기록해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-025",
+      "title": "SW는 fire_detected, overtemperature_detected, adult",
+      "text": "SW는 fire_detected, overtemperature_detected, adult_present가 INVALID이면 해당 입력을 FALSE로 간주해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-026",
+      "title": "SW는 SSR-020~025, 029로 대체한 INVALID 입력이 하나라도 있으면 sta",
+      "text": "SW는 SSR-020~025, 029로 대체한 INVALID 입력이 하나라도 있으면 state를 DEGRADED로 해야 한다(SSR-030 우선순위 적용).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-027",
+      "title": "SW는 도어별로 아래 우선순위 표에서 성립한 가장 높은 우선순위 규칙의 출력을 선택해야 한",
+      "text": "SW는 도어별로 아래 우선순위 표에서 성립한 가장 높은 우선순위 규칙의 출력을 선택해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-028",
+      "title": "SW는 state를 FAULT > DEGRADED > OFF > NORMAL의 우선순위로 ",
+      "text": "SW는 state를 FAULT > DEGRADED > OFF > NORMAL의 우선순위로 정해야 한다.",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    },
+    {
+      "id": "SSR-030",
+      "title": "SW는 매 평가에서 state를 아래 조건표로 이전 state와 무관하게 다시 정해야 한다",
+      "text": "SW는 매 평가에서 state를 아래 조건표로 이전 state와 무관하게 다시 정해야 한다(조건 해소 시 즉시 복귀).",
+      "category": "functional",
+      "asil": "B",
+      "testable": true,
+      "has_inputs": true,
+      "has_ranges": false
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "TC-F-001",
+      "basis_ids": [
+        "SRQ-FUN-001",
+        "SRQ-FUN-002",
+        "SRQ-FUN-006",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "정지·정상 입력에서 source 4종 × side 3종의 lock 명령이 선택된 도어에만 적용되고 반대쪽 도어는 변하지 않는다(24개 중 lock 12조합, 전 조합 완전 열거)",
+      "preconditions": "정지(speed 0.0), 정상 입력, 직전 출력 RELEASE/RELEASE",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=LEFT/LOCK/PHYSICAL_BUTTON\nS3: cmd=ALL/UNLOCK/AVN\nS4: cmd=RIGHT/LOCK/PHYSICAL_BUTTON\nS5: cmd=ALL/UNLOCK/AVN\nS6: cmd=ALL/LOCK/PHYSICAL_BUTTON\nS7: cmd=ALL/UNLOCK/AVN\nS8: cmd=LEFT/LOCK/AVN\nS9: cmd=ALL/UNLOCK/AVN\nS10: cmd=RIGHT/LOCK/AVN\nS11: cmd=ALL/UNLOCK/AVN\nS12: cmd=ALL/LOCK/AVN\nS13: cmd=ALL/UNLOCK/AVN\nS14: cmd=LEFT/LOCK/VOICE\nS15: cmd=ALL/UNLOCK/AVN\nS16: cmd=RIGHT/LOCK/VOICE\nS17: cmd=ALL/UNLOCK/AVN\nS18: cmd=ALL/LOCK/VOICE\nS19: cmd=ALL/UNLOCK/AVN\nS20: cmd=LEFT/LOCK/MOBILE_APP\nS21: cmd=ALL/UNLOCK/AVN\nS22: cmd=RIGHT/LOCK/MOBILE_APP\nS23: cmd=ALL/UNLOCK/AVN\nS24: cmd=ALL/LOCK/MOBILE_APP",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS4: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS5: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS6: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS7: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS8: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS9: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS10: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS11: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS12: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS13: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS14: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS15: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS16: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS17: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS18: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS19: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS20: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS21: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS22: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS23: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS24: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-002",
+      "basis_ids": [
+        "SRQ-FUN-001",
+        "SRQ-FUN-003",
+        "SRQ-FUN-006"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "정지·정상 입력에서 source 4종 × side 3종의 unlock 명령이 선택된 도어만 RELEASE하고 반대쪽 도어는 변하지 않는다(24개 중 unlock 12조합)",
+      "preconditions": "정지(speed 0.0), 정상 입력",
+      "inputs": "S1: cmd=ALL/LOCK/PHYSICAL_BUTTON\nS2: cmd=LEFT/UNLOCK/PHYSICAL_BUTTON\nS3: cmd=ALL/LOCK/PHYSICAL_BUTTON\nS4: cmd=RIGHT/UNLOCK/PHYSICAL_BUTTON\nS5: cmd=ALL/LOCK/PHYSICAL_BUTTON\nS6: cmd=ALL/UNLOCK/PHYSICAL_BUTTON\nS7: cmd=ALL/LOCK/AVN\nS8: cmd=LEFT/UNLOCK/AVN\nS9: cmd=ALL/LOCK/AVN\nS10: cmd=RIGHT/UNLOCK/AVN\nS11: cmd=ALL/LOCK/AVN\nS12: cmd=ALL/UNLOCK/AVN\nS13: cmd=ALL/LOCK/VOICE\nS14: cmd=LEFT/UNLOCK/VOICE\nS15: cmd=ALL/LOCK/VOICE\nS16: cmd=RIGHT/UNLOCK/VOICE\nS17: cmd=ALL/LOCK/VOICE\nS18: cmd=ALL/UNLOCK/VOICE\nS19: cmd=ALL/LOCK/MOBILE_APP\nS20: cmd=LEFT/UNLOCK/MOBILE_APP\nS21: cmd=ALL/LOCK/MOBILE_APP\nS22: cmd=RIGHT/UNLOCK/MOBILE_APP\nS23: cmd=ALL/LOCK/MOBILE_APP\nS24: cmd=ALL/UNLOCK/MOBILE_APP",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS6: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS7: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS8: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS9: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS10: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS11: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS12: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS13: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS14: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS15: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS16: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS17: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS18: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS19: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS20: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS21: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS22: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS23: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS24: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-003",
+      "basis_ids": [
+        "SRQ-FUN-004",
+        "SRQ-FUN-005",
+        "SRQ-FUN-009"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "속도 경계 3.0 km/h(2.9, 3.0, 300.0)에서 자동 LOCK과 이동 중 unlock 거부(이유코드 RC_UNLOCK_DENIED_MOVING)를 확인한다",
+      "preconditions": "IGN ON, 기어 P/D, 정상 입력",
+      "inputs": "S1: cmd=ALL/LOCK/AVN\nS2: speed=2.9, cmd=ALL/UNLOCK/AVN\nS3: speed=3.0\nS4: speed=3.0, cmd=ALL/UNLOCK/AVN\nS5: speed=300.0\nS6: speed=2.9\nS7: speed=2.9, cmd=ALL/UNLOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_SPEED_AUTO_LOCK\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_UNLOCK_DENIED_MOVING\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_SPEED_AUTO_LOCK\nS6: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS7: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "경계값 분석",
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-004",
+      "basis_ids": [
+        "SRQ-FUN-007",
+        "SRQ-FUN-008",
+        "SRQ-FUN-031",
+        "SRQ-FUN-038"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "명령 필드를 하나씩만 누락/범위 밖/미등록으로 만들면(무효 클래스는 케이스당 1개 결함) 거절되어 출력이 유지되고 command_rejected=1, 이유코드 RC_COMMAND_REJECTED이다",
+      "preconditions": "직전 출력 LOCK/LOCK(첫 단계로 설정), 정지·정상 입력",
+      "inputs": "S1: cmd=ALL/LOCK/AVN\nS2: cmd=ABSENT/UNLOCK/AVN\nS3: cmd=-1/UNLOCK/AVN\nS4: cmd=3/UNLOCK/AVN\nS5: cmd=ALL/ABSENT/AVN\nS6: cmd=ALL/-1/AVN\nS7: cmd=ALL/2/AVN\nS8: cmd=ALL/UNLOCK/ABSENT\nS9: cmd=ALL/UNLOCK/-1\nS10: cmd=ALL/UNLOCK/4\nS11: 정상 입력",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS6: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS7: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS8: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS9: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS10: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_COMMAND_REJECTED, command_rejected=1\nS11: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "동치 분할",
+        "경계값 분석",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-005",
+      "basis_ids": [
+        "SRQ-FUN-010",
+        "SRQ-FUN-011",
+        "SRQ-FUN-032"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "화재, 과온, 성인 탑승 각각 단독 및 동시 TRUE일 때 두 도어가 RELEASE되고 이유코드가 입력별(동시 시 fire > overtemp > adult)로 기록된다",
+      "preconditions": "정상 입력, 정지, 직전 출력 LOCK/LOCK(단계 설정)",
+      "inputs": "S1: cmd=ALL/LOCK/AVN\nS2: fire=1\nS3: cmd=ALL/LOCK/AVN\nS4: overtemp=1\nS5: cmd=ALL/LOCK/AVN\nS6: adult=1\nS7: cmd=ALL/LOCK/AVN\nS8: fire=1, adult=1\nS9: cmd=ALL/LOCK/AVN\nS10: overtemp=1, adult=1",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_FIRE\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_OVERTEMP\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS6: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_ADULT_PRESENT\nS7: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS8: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_FIRE\nS9: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS10: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_OVERTEMP",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-006",
+      "basis_ids": [
+        "SRQ-FUN-012",
+        "SRQ-FUN-013"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "ISOFIX가 TRUE인 쪽만 LOCK되고 FALSE인 쪽은 ISOFIX 규칙으로 변경되지 않으며 ISOFIX 도어는 운전자 unlock보다 우선한다",
+      "preconditions": "정지, 정상 입력",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: isofix_left=1\nS3: isofix_left=1, isofix_right=1\nS4: isofix_right=1\nS5: isofix_left=1, cmd=ALL/UNLOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_ISOFIX\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_ISOFIX\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_ISOFIX\nS5: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_ISOFIX",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-007",
+      "basis_ids": [
+        "SRQ-FUN-014",
+        "SRQ-FUN-015",
+        "SRQ-FUN-016",
+        "SRQ-FUN-026",
+        "SRQ-FUN-036"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "초기 출력/state(RELEASE/RELEASE/OFF) 확인 후, ignition_on=FALSE이면 두 도어 RELEASE, state=OFF, 이유코드 RC_IGNITION_OFF이다(속도 3.0 이상이면 LOCK 우선)",
+      "preconditions": "초기화 직후",
+      "inputs": "S1: cmd=ALL/LOCK/AVN\nS2: ignition_on=0\nS3: 정상 입력\nS4: cmd=ALL/LOCK/AVN\nS5: speed=3.0, ignition_on=0",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "초기: lock_left=RELEASE, lock_right=RELEASE, state=OFF, reason=RC_NONE\nS1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=OFF, reason=RC_IGNITION_OFF\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_NONE\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS5: lock_left=LOCK, lock_right=LOCK, state=OFF, reason=RC_SPEED_AUTO_LOCK",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-008",
+      "basis_ids": [
+        "SSR-011",
+        "SSR-012",
+        "SSR-013",
+        "SSR-014",
+        "SSR-015",
+        "SSR-035",
+        "SRQ-FUN-017",
+        "SRQ-FUN-018",
+        "SRQ-FUN-019",
+        "SRQ-FUN-020",
+        "SRQ-FUN-033",
+        "SRQ-FUN-034",
+        "SRQ-FUN-035"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "접근위험 도어는 LOCK·해제 억제(좌우 독립), 같은 source의 10.0 s 이내 재입력은 override(LOCK 유지), 10.01 s 초과는 새 억제, 접근위험 해소 시 override 해제를 확인한다",
+      "preconditions": "정지, 정상 입력(우 도어 접근위험 없음)",
+      "inputs": "S1: t=1.00, cmd=ALL/LOCK/AVN\nS2: t=2.00, approach_left=1, cmd=ALL/UNLOCK/AVN\nS3: t=12.00, approach_left=1, cmd=ALL/UNLOCK/AVN\nS4: t=12.01\nS5: t=20.00, approach_left=1, cmd=LEFT/UNLOCK/AVN\nS6: t=30.01, approach_left=1, cmd=LEFT/UNLOCK/AVN\nS7: t=30.02, approach_left=1, cmd=LEFT/UNLOCK/AVN\nS8: t=30.03, approach_left=1, cmd=LEFT/UNLOCK/VOICE\nS9: t=45.00, approach_left=1",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=0\nS3: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_OVERRIDE_ACK, override_left=1, override_right=0\nS4: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_NONE, override_left=0\nS5: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=0\nS6: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=0\nS7: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_OVERRIDE_ACK, override_left=1\nS8: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=1\nS9: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK, override_left=0",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "경계값 분석",
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-009",
+      "basis_ids": [
+        "SSR-001",
+        "SSR-002",
+        "SSR-003",
+        "SSR-004",
+        "SSR-031",
+        "SSR-036"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "충돌 CONFIRMED는 모든 명령·접근위험보다 우선해 RELEASE를 유지하고, PENDING은 1.000 s까지 출력 유지(RC_CRASH_PENDING_HOLD)·1.010 s에 RC_CRASH_PENDING_TIMEOUT을 한 번만 기록한다",
+      "preconditions": "정지, 정상 입력",
+      "inputs": "S1: t=1.00, cmd=ALL/LOCK/AVN\nS2: crash=2\nS3: crash=2, cmd=ALL/LOCK/AVN\nS4: 정상 입력\nS5: cmd=ALL/LOCK/AVN\nS6: t=5.00, crash=1\nS7: t=6.00, crash=1\nS8: t=6.01, crash=1\nS9: t=6.02, crash=1\nS10: t=6.03\nS11: t=7.00, crash=2, approach_left=1",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED\nS4: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_NONE\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS6: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_CRASH_PENDING_HOLD\nS7: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_CRASH_PENDING_HOLD\nS8: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_CRASH_PENDING_TIMEOUT\nS9: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS10: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS11: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "경계값 분석",
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-010",
+      "basis_ids": [
+        "SSR-005",
+        "SSR-006",
+        "SSR-020",
+        "SSR-021",
+        "SSR-022",
+        "SSR-023",
+        "SSR-024",
+        "SSR-025",
+        "SSR-026",
+        "SSR-029",
+        "SSR-032",
+        "SSR-037"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "필수 입력을 하나씩만(무효 클래스 1개 결함) INVALID로 주입하면 안전 측 대체 값 규칙대로 출력·state·이유코드가 결정된다(입력 17종, 경계 speed 300.0 유효/300.1 무효 포함)",
+      "preconditions": "직전 출력 RELEASE/RELEASE(각 단계 앞 reset 단계), 정지",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: approach_left=ABSENT\nS3: cmd=ALL/UNLOCK/AVN\nS4: approach_right=7\nS5: cmd=ALL/UNLOCK/AVN\nS6: isofix_left=-1\nS7: cmd=ALL/UNLOCK/AVN\nS8: isofix_right=ABSENT\nS9: cmd=ALL/UNLOCK/AVN\nS10: fire=2\nS11: cmd=ALL/UNLOCK/AVN\nS12: overtemp=2\nS13: cmd=ALL/UNLOCK/AVN\nS14: adult=ABSENT\nS15: cmd=ALL/UNLOCK/AVN\nS16: sensor_fault=2\nS17: cmd=ALL/UNLOCK/AVN\nS18: speed=NaN\nS19: cmd=ALL/UNLOCK/AVN\nS20: speed=-0.1\nS21: cmd=ALL/UNLOCK/AVN\nS22: speed=300.1\nS23: cmd=ALL/UNLOCK/AVN\nS24: speed=300.0\nS25: cmd=ALL/UNLOCK/AVN\nS26: gear=9\nS27: cmd=ALL/UNLOCK/AVN\nS28: crash=5\nS29: cmd=ALL/UNLOCK/AVN\nS30: ignition_on=2\nS31: cmd=ALL/UNLOCK/AVN\nS32: age=-0.1\nS33: cmd=ALL/UNLOCK/AVN\nS34: age=NaN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=DEGRADED, reason=RC_APPROACH_RISK\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS4: lock_left=RELEASE, lock_right=LOCK, state=DEGRADED, reason=RC_APPROACH_RISK\nS5: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS6: lock_left=LOCK, lock_right=RELEASE, state=DEGRADED, reason=RC_ISOFIX\nS7: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS8: lock_left=RELEASE, lock_right=LOCK, state=DEGRADED, reason=RC_ISOFIX\nS9: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS10: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_NONE\nS11: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS12: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_NONE\nS13: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS14: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_NONE\nS15: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS16: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT\nS17: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS18: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_SPEED_AUTO_LOCK\nS19: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS20: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_SPEED_AUTO_LOCK\nS21: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS22: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_SPEED_AUTO_LOCK\nS23: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS24: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_SPEED_AUTO_LOCK\nS25: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS26: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_NONE\nS27: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS28: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_INPUT_INVALID\nS29: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS30: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_INPUT_INVALID\nS31: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS32: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_INPUT_STALE\nS33: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS34: lock_left=RELEASE, lock_right=RELEASE, state=DEGRADED, reason=RC_INPUT_STALE",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "동치 분할",
+        "경계값 분석",
+        "오류 추정",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-011",
+      "basis_ids": [
+        "SSR-007",
+        "SSR-008",
+        "SSR-009",
+        "SSR-010",
+        "SSR-033",
+        "SSR-034"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "freshness 경계(age 0.200 fresh, 0.210 STALE)와 틱(마지막 스냅샷 후 0.200 s까지 정상, 0.210 s에 STALE)에서 DEGRADED 전이·출력 유지·복구를 확인한다",
+      "preconditions": "정지, 정상 입력",
+      "inputs": "S1: t=1.00, cmd=ALL/LOCK/AVN\nS2: t=1.01, age=0.2\nS3: t=1.02, age=0.21\nS4: t=1.03\nS5: t=2.00\nS6: tick t=2.20\nS7: tick t=2.21\nS8: t=2.22",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS3: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_INPUT_STALE\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS5: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS6: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE\nS7: lock_left=LOCK, lock_right=LOCK, state=DEGRADED, reason=RC_INPUT_STALE\nS8: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "경계값 분석",
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-012",
+      "basis_ids": [
+        "SSR-016",
+        "SSR-017",
+        "SSR-018",
+        "SSR-019"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "sensor_fault=TRUE이면 새 명령을 적용하지 않고 직전 출력을 유지하며(접근위험 도어는 LOCK) state=FAULT, 경고코드 RC_SENSOR_FAULT를 제공한다",
+      "preconditions": "정지, 정상 입력",
+      "inputs": "S1: cmd=LEFT/LOCK/AVN\nS2: sensor_fault=1, cmd=ALL/UNLOCK/AVN\nS3: approach_right=1, sensor_fault=1\nS4: 정상 입력",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT\nS3: lock_left=LOCK, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT\nS4: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_NONE",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "동치 분할",
+        "고장 주입",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-019",
+      "basis_ids": [
+        "SSR-001",
+        "SSR-027",
+        "SSR-028",
+        "SSR-020",
+        "SSR-022",
+        "SSR-005"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "WoW(Worst-of-Worst): 충돌+sensor_fault+접근위험+화재+ISOFIX+속도 300+시동 OFF+lock 명령을 동시에 주입(W1), 충돌 없이 같은 조합+unlock(W2), 모든 입력과 명령을 동시에 무효(W3)",
+      "preconditions": "정지, 직전 출력 RELEASE/RELEASE(단계 설정)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: speed=300.0, crash=2, approach_left=1, approach_right=1, fire=1, isofix_left=1, isofix_right=1, ignition_on=0, sensor_fault=1, cmd=ALL/LOCK/AVN\nS3: cmd=ALL/UNLOCK/AVN\nS4: speed=300.0, approach_left=1, approach_right=1, fire=1, isofix_left=1, isofix_right=1, ignition_on=0, sensor_fault=1, cmd=ALL/UNLOCK/AVN\nS5: cmd=ALL/UNLOCK/AVN\nS6: speed=NaN, gear=ABSENT, age=NaN, crash=ABSENT, approach_left=ABSENT, approach_right=ABSENT, fire=ABSENT, overtemp=ABSENT, adult=ABSENT, isofix_left=ABSENT, isofix_right=ABSENT, ignition_on=ABSENT, sensor_fault=ABSENT, cmd=ABSENT/ABSENT/ABSENT",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_CRASH_CONFIRMED\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS4: lock_left=LOCK, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT\nS5: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS6: lock_left=LOCK, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT, command_rejected=1",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "WoW(Worst-of-Worst)",
+        "오류 추정",
+        "고장 주입"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-01",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #1: prev=LR, crash=0, fault=1, approach_left=0, fire=1, isofix_left=0, speed=0.0, ign=0, cmd=lock",
+      "preconditions": "직전 출력 설정 단계 후(prev=LR)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=LEFT/LOCK/AVN\nS3: fire=1, ignition_on=0, sensor_fault=1, cmd=ALL/LOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-02",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #2: prev=RR, crash=1, fault=0, approach_left=1, fire=0, isofix_left=1, speed=3.0, ign=1, cmd=lock",
+      "preconditions": "직전 출력 설정 단계 후(prev=RR)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: speed=3.0, crash=1, approach_left=1, isofix_left=1, cmd=ALL/LOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_PENDING_HOLD",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-03",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #3: prev=LL, crash=2, fault=1, approach_left=1, fire=1, isofix_left=1, speed=0.0, ign=1, cmd=unlock",
+      "preconditions": "직전 출력 설정 단계 후(prev=LL)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=LEFT/LOCK/AVN\nS3: cmd=RIGHT/LOCK/AVN\nS4: crash=2, approach_left=1, fire=1, isofix_left=1, sensor_fault=1, cmd=ALL/UNLOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_CRASH_CONFIRMED",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-04",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #4: prev=RR, crash=2, fault=0, approach_left=0, fire=0, isofix_left=0, speed=3.0, ign=0, cmd=none",
+      "preconditions": "직전 출력 설정 단계 후(prev=RR)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: speed=3.0, crash=2, ignition_on=0",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=OFF, reason=RC_CRASH_CONFIRMED",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-05",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #5: prev=LR, crash=1, fault=1, approach_left=0, fire=0, isofix_left=1, speed=0.0, ign=1, cmd=none",
+      "preconditions": "직전 출력 설정 단계 후(prev=LR)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=LEFT/LOCK/AVN\nS3: crash=1, isofix_left=1, sensor_fault=1",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-06",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #6: prev=RL, crash=0, fault=0, approach_left=1, fire=0, isofix_left=1, speed=3.0, ign=0, cmd=unlock",
+      "preconditions": "직전 출력 설정 단계 후(prev=RL)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=RIGHT/LOCK/AVN\nS3: speed=3.0, approach_left=1, isofix_left=1, ignition_on=0, cmd=ALL/UNLOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=OFF, reason=RC_APPROACH_RISK",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-07",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #7: prev=LL, crash=0, fault=0, approach_left=1, fire=1, isofix_left=0, speed=3.0, ign=1, cmd=none",
+      "preconditions": "직전 출력 설정 단계 후(prev=LL)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=LEFT/LOCK/AVN\nS3: cmd=RIGHT/LOCK/AVN\nS4: speed=3.0, approach_left=1, fire=1",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_APPROACH_RISK",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-08",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #8: prev=RL, crash=1, fault=1, approach_left=0, fire=1, isofix_left=0, speed=0.0, ign=0, cmd=unlock",
+      "preconditions": "직전 출력 설정 단계 후(prev=RL)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=RIGHT/LOCK/AVN\nS3: crash=1, fire=1, ignition_on=0, sensor_fault=1, cmd=ALL/UNLOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-09",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #9: prev=LR, crash=2, fault=0, approach_left=1, fire=0, isofix_left=1, speed=3.0, ign=0, cmd=unlock",
+      "preconditions": "직전 출력 설정 단계 후(prev=LR)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=LEFT/LOCK/AVN\nS3: speed=3.0, crash=2, approach_left=1, isofix_left=1, ignition_on=0, cmd=ALL/UNLOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=RELEASE, state=OFF, reason=RC_CRASH_CONFIRMED",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-10",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #10: prev=LL, crash=2, fault=1, approach_left=0, fire=0, isofix_left=1, speed=3.0, ign=0, cmd=lock",
+      "preconditions": "직전 출력 설정 단계 후(prev=LL)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=LEFT/LOCK/AVN\nS3: cmd=RIGHT/LOCK/AVN\nS4: speed=3.0, crash=2, isofix_left=1, ignition_on=0, sensor_fault=1, cmd=ALL/LOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_CRASH_CONFIRMED",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-11",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #11: prev=RL, crash=2, fault=0, approach_left=1, fire=1, isofix_left=0, speed=0.0, ign=1, cmd=lock",
+      "preconditions": "직전 출력 설정 단계 후(prev=RL)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=RIGHT/LOCK/AVN\nS3: crash=2, approach_left=1, fire=1, cmd=ALL/LOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-12",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #12: prev=RR, crash=0, fault=1, approach_left=0, fire=1, isofix_left=1, speed=0.0, ign=0, cmd=unlock",
+      "preconditions": "직전 출력 설정 단계 후(prev=RR)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: fire=1, isofix_left=1, ignition_on=0, sensor_fault=1, cmd=ALL/UNLOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=RELEASE, state=FAULT, reason=RC_SENSOR_FAULT",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-13",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #13: prev=RL, crash=2, fault=0, approach_left=0, fire=1, isofix_left=0, speed=0.0, ign=1, cmd=none",
+      "preconditions": "직전 출력 설정 단계 후(prev=RL)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=RIGHT/LOCK/AVN\nS3: crash=2, fire=1",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=RELEASE, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_CRASH_CONFIRMED",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-013-14",
+      "basis_ids": [
+        "SSR-027",
+        "SSR-028",
+        "SSR-030",
+        "SRQ-FUN-021"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "중재 우선순위 페어와이즈 조합 #14: prev=LL, crash=1, fault=1, approach_left=1, fire=1, isofix_left=1, speed=0.0, ign=1, cmd=unlock",
+      "preconditions": "직전 출력 설정 단계 후(prev=LL)",
+      "inputs": "S1: cmd=ALL/UNLOCK/AVN\nS2: cmd=LEFT/LOCK/AVN\nS3: cmd=RIGHT/LOCK/AVN\nS4: crash=1, approach_left=1, fire=1, isofix_left=1, sensor_fault=1, cmd=ALL/UNLOCK/AVN",
+      "procedure": "1. ecl_core_init로 초기화한다.\n2. 각 단계(S1..Sn)의 입력으로 ecl_core_evaluate(또는 tick)를 호출한다(시각은 단계별 t, 생략 시 직전+0.010 s).\n3. 각 호출 직후 ecl_core_get_status 값을 기대값과 비교한다.",
+      "expected": "S1: lock_left=RELEASE, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_UNLOCK\nS2: lock_left=LOCK, lock_right=RELEASE, state=NORMAL, reason=RC_DRIVER_LOCK\nS3: lock_left=LOCK, lock_right=LOCK, state=NORMAL, reason=RC_DRIVER_LOCK\nS4: lock_left=LOCK, lock_right=LOCK, state=FAULT, reason=RC_SENSOR_FAULT",
+      "pass_criteria": "모든 단계의 lock_left, lock_right, state, reason_code(및 지정 시 command_rejected/override)가 기대값과 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "페어와이즈(PICT)",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-014",
+      "basis_ids": [
+        "SRQ-FUN-022",
+        "SRQ-FUN-023",
+        "SRQ-FUN-029"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "상태 조회/직렬화에 좌·우 출력, state, 입력별 validity, 이유코드, override, command_rejected가 모두 포함되고 직렬화 버퍼 경계(필요 길이+1 성공, 길이 부족 RET_ERR_SERIALIZE)를 확인한다",
+      "preconditions": "init 후 정상 평가 1회",
+      "inputs": "상태 직렬화 버퍼 capacity = 필요 길이+1, 필요 길이, 4 바이트; 이벤트 조회",
+      "procedure": "1. 정상 입력을 평가한다.\n2. ecl_core_serialize_status를 세 가지 capacity로 호출한다.\n3. 결과 문자열에서 필드명을 찾는다.\n4. ecl_core_query_events로 이벤트 필드를 읽는다.",
+      "expected": "문자열에 lock_left, lock_right, state, reason_code, override_left, override_right, command_rejected, validity_<신호 13종> 포함. capacity 필요 길이+1: RET_OK, 필요 길이: RET_ERR_SERIALIZE(버퍼 불변), 4: RET_ERR_SERIALIZE. 이벤트에 event_id, timestamp_s, lock, state, reason_code, command_rejected, validity 필드가 존재",
+      "pass_criteria": "필드 누락 0건, 반환 코드 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "경계값 분석",
+        "동치 분할",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-015",
+      "basis_ids": [
+        "SRQ-FUN-027",
+        "SRQ-FUN-028",
+        "SRQ-FUN-030",
+        "SRQ-LIM-001",
+        "SRQ-LIM-003"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "이벤트 이력: 변화 평가마다 정확히 1건, ID 1부터 연속 증가, 101건 기록 후 최신 100건(ID 2~101)이 오름차순으로 조회되고 프로세스 재기동(재초기화) 후 0건이다",
+      "preconditions": "init 직후",
+      "inputs": "lock/unlock 명령을 번갈아 99, 100, 101회; 변화 없는 평가 3회; 재초기화",
+      "procedure": "1. 99/100/101회 변화 후 각각 query한다.\n2. 변화 없는 평가를 3회 수행하고 건수를 확인한다.\n3. ecl_core_init로 재초기화 후 query한다.",
+      "expected": "99회: 건수 99(첫 평가가 OFF→NORMAL 전이를 포함하면 +1), 101회: 100건(첫 ID 2 이상, 마지막 ID가 마지막 이벤트), 오름차순, 변화 없는 평가는 건수 불변, 재초기화 후 0건",
+      "pass_criteria": "건수·ID 일치",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "경계값 분석",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-016",
+      "basis_ids": [
+        "SRQ-FUN-037",
+        "SRQ-FUN-039"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "시험 빌드의 카운터 설정 접근자로 이벤트 ID를 최댓값 직전으로 설정하면 ID 2^64−1인 이벤트 1건만 기록되고 이후 이벤트는 기록되지 않으며 제어는 계속된다",
+      "preconditions": "시험 빌드(ECL_TEST_BUILD), init 직후",
+      "inputs": "카운터 = 2^64−2 설정 후 변화 평가 2회",
+      "procedure": "1. ecl_log_test_set_counter(&core.log, UINT64_MAX-1)\n2. 변화 평가 2회\n3. query_events",
+      "expected": "이벤트 1건(ID=2^64−1), 두 번째 변화 평가의 status는 갱신됨, 두 번째 이벤트는 없음",
+      "pass_criteria": "건수 1, 출력 갱신",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "경계값 분석",
+        "요구사항 기반"
+      ],
+      "priority": "Medium",
+      "remarks": ""
+    },
+    {
+      "id": "TC-NF-001",
+      "basis_ids": [
+        "SRQ-QUA-FUN-001"
+      ],
+      "category": "non-functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "시험 벡터 V를 고정 시각으로 1,000회 재생(매번 init)했을 때 평가마다 상태 응답 직렬화를 이어 붙인 바이트열의 SHA-256이 모두 같다",
+      "preconditions": "docs/test-vectors/vector-v.csv(23행), 평가 간격 0.010 s",
+      "inputs": "벡터 V 23행 × 1,000회 재생",
+      "procedure": "1. CSV를 읽는다.\n2. 1,000회 반복: init → 행마다 evaluate → serialize → SHA-256 누적.\n3. 해시를 비교한다.",
+      "expected": "1,000개 해시가 모두 동일",
+      "pass_criteria": "해시 불일치 0건",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "요구사항 기반",
+        "오류 추정"
+      ],
+      "priority": "High",
+      "remarks": ""
+    },
+    {
+      "id": "TC-NF-002",
+      "basis_ids": [
+        "SRQ-LIM-002",
+        "SRQ-LIM-004"
+      ],
+      "category": "non-functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "시험 벡터 V의 평가 호출 간격이 0.010 s이고(호출 계약), 평가 1회의 최악 소요 시간이 0.010 s 미만이다(PC 벽시계, 벡터 10,000회 반복 중 최댓값)",
+      "preconditions": "docs/test-vectors/vector-v.csv, 단일 스레드, 최적화 -O0",
+      "inputs": "벡터 V 23행 × 10,000회, 호출 간격 검사",
+      "procedure": "1. CSV의 연속 행 시각 차이를 확인한다.\n2. std::chrono::steady_clock으로 evaluate 1회 시간을 측정하고 최댓값을 구한다.",
+      "expected": "모든 시각 차이 = 0.010 s(±1e-9), 최악 평가 시간 < 0.010 s",
+      "pass_criteria": "최댓값 < 10 ms",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "경계값 분석",
+        "요구사항 기반"
+      ],
+      "priority": "Medium",
+      "remarks": ""
+    },
+    {
+      "id": "TC-NF-003",
+      "basis_ids": [
+        "SRQ-QUA-REL-001"
+      ],
+      "category": "non-functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "공개 함수(ecl_core_init/evaluate/tick/get_status/serialize_status/query_events) 각각에 NULL 포인터 인자를 하나씩 주면 RET_ERR_NULL(-1)을 반환하고 출력 인자를 바꾸지 않는다",
+      "preconditions": "init 후",
+      "inputs": "각 함수의 포인터 인자를 하나씩 nullptr",
+      "procedure": "1. 출력 버퍼를 센티널로 채운다.\n2. 각 함수를 NULL 인자로 호출한다.\n3. 반환값과 버퍼를 확인한다.",
+      "expected": "모든 호출이 -1 반환, 출력 인자 불변",
+      "pass_criteria": "예외 0건",
+      "environment": "PC/SIL (ecl_core 공개 API 직접 호출, 시각 주입)",
+      "techniques": [
+        "동치 분할",
+        "오류 추정"
+      ],
+      "priority": "Medium",
+      "remarks": ""
+    },
+    {
+      "id": "TC-F-017",
+      "basis_ids": [
+        "SRQ-FUN-025",
+        "SRQ-CON-009"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "표시 계층(Web)이 상태 응답의 출력, state, 입력 유효성, 이유코드를 화면에 표시하며 HTML은 클라이언트 스크립트 없이 서버(C)가 생성한다",
+      "preconditions": "표시 계층 구현 후(이터레이션 3), 코어 연결",
+      "inputs": "시험 입력 3종(정상, 접근위험, sensor_fault)",
+      "procedure": "1. POST /snapshot으로 입력을 주입한다.\n2. GET /status 화면의 값을 읽는다.\n3. 응답 HTML에서 <script> 존재 여부를 검사한다.",
+      "expected": "표시값 = 상태 응답값, <script> 없음",
+      "pass_criteria": "불일치 0건",
+      "environment": "Web (이터레이션 3 구현 후 실행)",
+      "techniques": [
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": "미구현(이터레이션 3). 설계만 완료"
+    },
+    {
+      "id": "TC-F-018",
+      "basis_ids": [
+        "SRQ-FUN-024"
+      ],
+      "category": "functional",
+      "source": "basis",
+      "proposed": false,
+      "purpose": "코어의 직렬화 실패(RET_ERR_SERIALIZE)가 표시 계층에서 HTTP 500으로 응답된다",
+      "preconditions": "표시 계층 구현 후(이터레이션 3), 직렬화 버퍼를 작게 강제",
+      "inputs": "직렬화 버퍼 크기 4 바이트로 설정한 서버",
+      "procedure": "1. 서버를 작은 버퍼로 기동한다.\n2. GET /status를 호출한다.",
+      "expected": "HTTP 상태 500",
+      "pass_criteria": "상태 코드 = 500",
+      "environment": "Web (이터레이션 3 구현 후 실행)",
+      "techniques": [
+        "고장 주입",
+        "요구사항 기반"
+      ],
+      "priority": "High",
+      "remarks": "미구현(이터레이션 3). 설계만 완료"
+    }
+  ],
+  "design": [
+    {
+      "id": "EP-SRQ-FUN-001",
+      "basis_id": "SRQ-FUN-001",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-001",
+        "TC-F-002"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-002",
+      "basis_id": "SRQ-FUN-002",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-001"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-003",
+      "basis_id": "SRQ-FUN-003",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-002"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-004",
+      "basis_id": "SRQ-FUN-004",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-003"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-FUN-004",
+      "basis_id": "SRQ-FUN-004",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-003"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-005",
+      "basis_id": "SRQ-FUN-005",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-003"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-006",
+      "basis_id": "SRQ-FUN-006",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-001",
+        "TC-F-002"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-007",
+      "basis_id": "SRQ-FUN-007",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-004"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-031",
+      "basis_id": "SRQ-FUN-031",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-004"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-008",
+      "basis_id": "SRQ-FUN-008",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-004"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-038",
+      "basis_id": "SRQ-FUN-038",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-004"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-009",
+      "basis_id": "SRQ-FUN-009",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-003"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-FUN-009",
+      "basis_id": "SRQ-FUN-009",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-003"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-010",
+      "basis_id": "SRQ-FUN-010",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-005"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-011",
+      "basis_id": "SRQ-FUN-011",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-005"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-032",
+      "basis_id": "SRQ-FUN-032",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-005"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-012",
+      "basis_id": "SRQ-FUN-012",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-006"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-013",
+      "basis_id": "SRQ-FUN-013",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-006"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-014",
+      "basis_id": "SRQ-FUN-014",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-007"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-015",
+      "basis_id": "SRQ-FUN-015",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-007"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-016",
+      "basis_id": "SRQ-FUN-016",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-007"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-017",
+      "basis_id": "SRQ-FUN-017",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-FUN-017",
+      "basis_id": "SRQ-FUN-017",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-018",
+      "basis_id": "SRQ-FUN-018",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-019",
+      "basis_id": "SRQ-FUN-019",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-033",
+      "basis_id": "SRQ-FUN-033",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-034",
+      "basis_id": "SRQ-FUN-034",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-FUN-034",
+      "basis_id": "SRQ-FUN-034",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-020",
+      "basis_id": "SRQ-FUN-020",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-FUN-020",
+      "basis_id": "SRQ-FUN-020",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-035",
+      "basis_id": "SRQ-FUN-035",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-FUN-035",
+      "basis_id": "SRQ-FUN-035",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-021",
+      "basis_id": "SRQ-FUN-021",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-001",
+        "TC-F-013-01",
+        "TC-F-013-02",
+        "TC-F-013-03",
+        "TC-F-013-04",
+        "TC-F-013-05",
+        "TC-F-013-06",
+        "TC-F-013-07",
+        "TC-F-013-08",
+        "TC-F-013-09",
+        "TC-F-013-10",
+        "TC-F-013-11",
+        "TC-F-013-12",
+        "TC-F-013-13",
+        "TC-F-013-14"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-022",
+      "basis_id": "SRQ-FUN-022",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-014"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-023",
+      "basis_id": "SRQ-FUN-023",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-014"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-024",
+      "basis_id": "SRQ-FUN-024",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-018"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-025",
+      "basis_id": "SRQ-FUN-025",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-017"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-026",
+      "basis_id": "SRQ-FUN-026",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-007"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-036",
+      "basis_id": "SRQ-FUN-036",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-007"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-027",
+      "basis_id": "SRQ-FUN-027",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-015"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-028",
+      "basis_id": "SRQ-FUN-028",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-015"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-FUN-028",
+      "basis_id": "SRQ-FUN-028",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-015"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-037",
+      "basis_id": "SRQ-FUN-037",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-016"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-FUN-037",
+      "basis_id": "SRQ-FUN-037",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-016"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-039",
+      "basis_id": "SRQ-FUN-039",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-016"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-029",
+      "basis_id": "SRQ-FUN-029",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-014"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-FUN-030",
+      "basis_id": "SRQ-FUN-030",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-015"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-FUN-030",
+      "basis_id": "SRQ-FUN-030",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-015"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-QUA-REL-001",
+      "basis_id": "SRQ-QUA-REL-001",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-NF-003"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-LIM-001",
+      "basis_id": "SRQ-LIM-001",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-015"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-LIM-003",
+      "basis_id": "SRQ-LIM-003",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-015"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-LIM-002",
+      "basis_id": "SRQ-LIM-002",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-NF-002"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SRQ-LIM-004",
+      "basis_id": "SRQ-LIM-004",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-NF-002"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SRQ-CON-009",
+      "basis_id": "SRQ-CON-009",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-017"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-001",
+      "basis_id": "SSR-001",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009",
+        "TC-F-019"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-002",
+      "basis_id": "SSR-002",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-003",
+      "basis_id": "SSR-003",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SSR-003",
+      "basis_id": "SSR-003",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-036",
+      "basis_id": "SSR-036",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SSR-036",
+      "basis_id": "SSR-036",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-004",
+      "basis_id": "SSR-004",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SSR-004",
+      "basis_id": "SSR-004",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-031",
+      "basis_id": "SSR-031",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SSR-031",
+      "basis_id": "SSR-031",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-009"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-005",
+      "basis_id": "SSR-005",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010",
+        "TC-F-019"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SSR-005",
+      "basis_id": "SSR-005",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010",
+        "TC-F-019"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-006",
+      "basis_id": "SSR-006",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-032",
+      "basis_id": "SSR-032",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-007",
+      "basis_id": "SSR-007",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-011"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SSR-007",
+      "basis_id": "SSR-007",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-011"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-008",
+      "basis_id": "SSR-008",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-011"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "BV-SSR-008",
+      "basis_id": "SSR-008",
+      "technique": "경계값 분석",
+      "item": "수치·시간·건수 경계",
+      "values": "경계 직전/경계/경계 직후(속도 2.9/3.0, 시간 0.200/0.210·1.000/1.010·10.00/10.01, 건수 99/100/101 등 TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-011"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-009",
+      "basis_id": "SSR-009",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-011"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-033",
+      "basis_id": "SSR-033",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-011"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-010",
+      "basis_id": "SSR-010",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-011"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-034",
+      "basis_id": "SSR-034",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-011"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-029",
+      "basis_id": "SSR-029",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-011",
+      "basis_id": "SSR-011",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-012",
+      "basis_id": "SSR-012",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-013",
+      "basis_id": "SSR-013",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-014",
+      "basis_id": "SSR-014",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-015",
+      "basis_id": "SSR-015",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-035",
+      "basis_id": "SSR-035",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-008"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-016",
+      "basis_id": "SSR-016",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-012"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-017",
+      "basis_id": "SSR-017",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-012"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-018",
+      "basis_id": "SSR-018",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-012"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-019",
+      "basis_id": "SSR-019",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-012"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-020",
+      "basis_id": "SSR-020",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010",
+        "TC-F-019"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-021",
+      "basis_id": "SSR-021",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-022",
+      "basis_id": "SSR-022",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010",
+        "TC-F-019"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-023",
+      "basis_id": "SSR-023",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-024",
+      "basis_id": "SSR-024",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-037",
+      "basis_id": "SSR-037",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-025",
+      "basis_id": "SSR-025",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-026",
+      "basis_id": "SSR-026",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-010"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-027",
+      "basis_id": "SSR-027",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-019",
+        "TC-F-013-01",
+        "TC-F-013-02",
+        "TC-F-013-03",
+        "TC-F-013-04",
+        "TC-F-013-05",
+        "TC-F-013-06",
+        "TC-F-013-07",
+        "TC-F-013-08",
+        "TC-F-013-09",
+        "TC-F-013-10",
+        "TC-F-013-11",
+        "TC-F-013-12",
+        "TC-F-013-13",
+        "TC-F-013-14"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-028",
+      "basis_id": "SSR-028",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-019",
+        "TC-F-013-01",
+        "TC-F-013-02",
+        "TC-F-013-03",
+        "TC-F-013-04",
+        "TC-F-013-05",
+        "TC-F-013-06",
+        "TC-F-013-07",
+        "TC-F-013-08",
+        "TC-F-013-09",
+        "TC-F-013-10",
+        "TC-F-013-11",
+        "TC-F-013-12",
+        "TC-F-013-13",
+        "TC-F-013-14"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "EP-SSR-030",
+      "basis_id": "SSR-030",
+      "technique": "동치 분할",
+      "item": "유효/무효 입력 클래스와 상태 클래스",
+      "values": "유효: 정상 입력 및 요구사항이 정한 조건 성립 / 무효: 범위 밖·누락 입력, 조건 미성립(TC 입력 값 참조)",
+      "covered_by": [
+        "TC-F-013-01",
+        "TC-F-013-02",
+        "TC-F-013-03",
+        "TC-F-013-04",
+        "TC-F-013-05",
+        "TC-F-013-06",
+        "TC-F-013-07",
+        "TC-F-013-08",
+        "TC-F-013-09",
+        "TC-F-013-10",
+        "TC-F-013-11",
+        "TC-F-013-12",
+        "TC-F-013-13",
+        "TC-F-013-14"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-001",
+      "basis_id": "SRQ-FUN-001",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-002",
+      "basis_id": "SRQ-FUN-002",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-003",
+      "basis_id": "SRQ-FUN-003",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-004",
+      "basis_id": "SRQ-FUN-004",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-005",
+      "basis_id": "SRQ-FUN-005",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-006",
+      "basis_id": "SRQ-FUN-006",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-007",
+      "basis_id": "SRQ-FUN-007",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-031",
+      "basis_id": "SRQ-FUN-031",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-008",
+      "basis_id": "SRQ-FUN-008",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-038",
+      "basis_id": "SRQ-FUN-038",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-009",
+      "basis_id": "SRQ-FUN-009",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-010",
+      "basis_id": "SRQ-FUN-010",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-011",
+      "basis_id": "SRQ-FUN-011",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-032",
+      "basis_id": "SRQ-FUN-032",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-012",
+      "basis_id": "SRQ-FUN-012",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-013",
+      "basis_id": "SRQ-FUN-013",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-014",
+      "basis_id": "SRQ-FUN-014",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-015",
+      "basis_id": "SRQ-FUN-015",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-016",
+      "basis_id": "SRQ-FUN-016",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-017",
+      "basis_id": "SRQ-FUN-017",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-018",
+      "basis_id": "SRQ-FUN-018",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-019",
+      "basis_id": "SRQ-FUN-019",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-033",
+      "basis_id": "SRQ-FUN-033",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-034",
+      "basis_id": "SRQ-FUN-034",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-020",
+      "basis_id": "SRQ-FUN-020",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-035",
+      "basis_id": "SRQ-FUN-035",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-021",
+      "basis_id": "SRQ-FUN-021",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-022",
+      "basis_id": "SRQ-FUN-022",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-023",
+      "basis_id": "SRQ-FUN-023",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-024",
+      "basis_id": "SRQ-FUN-024",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-025",
+      "basis_id": "SRQ-FUN-025",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-026",
+      "basis_id": "SRQ-FUN-026",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-036",
+      "basis_id": "SRQ-FUN-036",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-027",
+      "basis_id": "SRQ-FUN-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-028",
+      "basis_id": "SRQ-FUN-028",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-037",
+      "basis_id": "SRQ-FUN-037",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-039",
+      "basis_id": "SRQ-FUN-039",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-029",
+      "basis_id": "SRQ-FUN-029",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-FUN-030",
+      "basis_id": "SRQ-FUN-030",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-QUA-FUN-001",
+      "basis_id": "SRQ-QUA-FUN-001",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-QUA-REL-001",
+      "basis_id": "SRQ-QUA-REL-001",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-LIM-001",
+      "basis_id": "SRQ-LIM-001",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-LIM-003",
+      "basis_id": "SRQ-LIM-003",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-LIM-002",
+      "basis_id": "SRQ-LIM-002",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-LIM-004",
+      "basis_id": "SRQ-LIM-004",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SRQ-CON-009",
+      "basis_id": "SRQ-CON-009",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-001",
+      "basis_id": "SSR-001",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-002",
+      "basis_id": "SSR-002",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-003",
+      "basis_id": "SSR-003",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-036",
+      "basis_id": "SSR-036",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-004",
+      "basis_id": "SSR-004",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-031",
+      "basis_id": "SSR-031",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-005",
+      "basis_id": "SSR-005",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-006",
+      "basis_id": "SSR-006",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-032",
+      "basis_id": "SSR-032",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-007",
+      "basis_id": "SSR-007",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-008",
+      "basis_id": "SSR-008",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-009",
+      "basis_id": "SSR-009",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-033",
+      "basis_id": "SSR-033",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-010",
+      "basis_id": "SSR-010",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-034",
+      "basis_id": "SSR-034",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-029",
+      "basis_id": "SSR-029",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-011",
+      "basis_id": "SSR-011",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-012",
+      "basis_id": "SSR-012",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-013",
+      "basis_id": "SSR-013",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-014",
+      "basis_id": "SSR-014",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-015",
+      "basis_id": "SSR-015",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-035",
+      "basis_id": "SSR-035",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-016",
+      "basis_id": "SSR-016",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-017",
+      "basis_id": "SSR-017",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-018",
+      "basis_id": "SSR-018",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-019",
+      "basis_id": "SSR-019",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-020",
+      "basis_id": "SSR-020",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-021",
+      "basis_id": "SSR-021",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-022",
+      "basis_id": "SSR-022",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-023",
+      "basis_id": "SSR-023",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-024",
+      "basis_id": "SSR-024",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-037",
+      "basis_id": "SSR-037",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-025",
+      "basis_id": "SSR-025",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-026",
+      "basis_id": "SSR-026",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-028",
+      "basis_id": "SSR-028",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-NA-SSR-030",
+      "basis_id": "SSR-030",
+      "technique": "페어와이즈(PICT)",
+      "item": "적용 검토",
+      "values": "",
+      "covered_by": [],
+      "applicable": false,
+      "note": "이 요구사항 단독으로는 독립 파라미터가 2개 이하이거나 단일 조건이라 조합 폭발이 없다. 우선순위 상호작용(조합)은 SSR-027의 PICT 모델(pict_model_arb.txt)에서 다룬다."
+    },
+    {
+      "id": "PW-SSR-027-01",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-01",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-01"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-02",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-02",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-02"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-03",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-03",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-03"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-04",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-04",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-04"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-05",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-05",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-05"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-06",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-06",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-06"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-07",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-07",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-07"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-08",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-08",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-08"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-09",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-09",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-09"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-10",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-10",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-10"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-11",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-11",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-11"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-12",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-12",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-12"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-13",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-13",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-13"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "PW-SSR-027-14",
+      "basis_id": "SSR-027",
+      "technique": "페어와이즈(PICT)",
+      "item": "중재 조합 TC-F-013-14",
+      "values": "pict_result_arb.tsv의 해당 행",
+      "covered_by": [
+        "TC-F-013-14"
+      ],
+      "applicable": true,
+      "note": ""
+    },
+    {
+      "id": "WOW-SSR-001",
+      "basis_id": "SSR-001",
+      "technique": "WoW(Worst-of-Worst)",
+      "item": "최악 값 동시 주입",
+      "values": "TC-F-019 W1~W3",
+      "covered_by": [
+        "TC-F-019"
+      ],
+      "applicable": true,
+      "note": ""
+    }
+  ],
+  "pict_models": [
+    {
+      "basis_id": "SSR-027",
+      "model_file": "pict_model_arb.txt",
+      "result_file": "pict_result_arb.tsv",
+      "order": 2,
+      "rows": 14
+    }
+  ],
+  "open_issues": [
+    {
+      "id": "Q-01",
+      "basis_id": "SRQ-CON-001",
+      "question": "검증 방법이 BLD/INS(C11 구현)로 정의되어 시스템 테스트 대상이 아님",
+      "impact": "시스템 테스트 케이스를 만들지 않음. 해당 검증 방법(INS/BLD)으로 별도 확인"
+    },
+    {
+      "id": "Q-02",
+      "basis_id": "SRQ-CON-008",
+      "question": "검증 방법이 BLD/INS(표시 서버 C 구현)로 정의됨",
+      "impact": "시스템 테스트 케이스를 만들지 않음. 해당 검증 방법(INS/BLD)으로 별도 확인"
+    },
+    {
+      "id": "Q-03",
+      "basis_id": "SRQ-CON-002",
+      "question": "검증 방법이 INS/UT(시스템 시계 미사용 검사)로 정의됨",
+      "impact": "시스템 테스트 케이스를 만들지 않음. 해당 검증 방법(INS/BLD)으로 별도 확인"
+    },
+    {
+      "id": "Q-04",
+      "basis_id": "SRQ-CON-005",
+      "question": "검증 방법이 INS(시스템 시계 호출 없음)로 정의됨",
+      "impact": "시스템 테스트 케이스를 만들지 않음. 해당 검증 방법(INS/BLD)으로 별도 확인"
+    },
+    {
+      "id": "Q-05",
+      "basis_id": "SRQ-CON-003",
+      "question": "검증 방법이 INS/UT(입력 구조에 금지 필드 없음)로 정의됨",
+      "impact": "시스템 테스트 케이스를 만들지 않음. 해당 검증 방법(INS/BLD)으로 별도 확인"
+    },
+    {
+      "id": "Q-06",
+      "basis_id": "SRQ-CON-006",
+      "question": "검증 방법이 INS/UT(금지 정보 미저장)로 정의됨",
+      "impact": "시스템 테스트 케이스를 만들지 않음. 해당 검증 방법(INS/BLD)으로 별도 확인"
+    },
+    {
+      "id": "Q-07",
+      "basis_id": "SRQ-CON-007",
+      "question": "검증 방법이 INS/UT(adult 단일 boolean)로 정의됨",
+      "impact": "시스템 테스트 케이스를 만들지 않음. 해당 검증 방법(INS/BLD)으로 별도 확인"
+    },
+    {
+      "id": "Q-08",
+      "basis_id": "SRQ-CON-004",
+      "question": "검증 방법이 INS(HW 직접 구동 없음)로 정의됨",
+      "impact": "시스템 테스트 케이스를 만들지 않음. 해당 검증 방법(INS/BLD)으로 별도 확인"
+    }
+  ]
+}

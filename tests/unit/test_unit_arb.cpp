@@ -33,7 +33,7 @@ struct Ctx {
 
 /**
  * @brief   [목적] 모든 인자가 NULL이면 각각 RET_ERR_NULL을 반환한다(인자별 독립).
- * @tracing SRQ-QUA-REL-001
+ * @tracing SRQ-QUA-REL-001, SRQ-FUN-018, SRQ-FUN-021, SSR-019, SSR-033, SSR-036, SSR-037
  * @par Input   in, cmd, ovr, prev, out을 하나씩 nullptr
  * @par Procedure  1. 각 호출
  * @par Expected   RET_ERR_NULL

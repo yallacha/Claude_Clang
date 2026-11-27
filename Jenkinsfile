@@ -47,6 +47,9 @@ pipeline {
         stage('Integration tests (Function 100%)') {
             steps { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { sh 'ci/quality.sh integration' } }
         }
+        stage('System tests (Requirement coverage 100%)') {
+            steps { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { sh 'ci/quality.sh system' } }
+        }
         stage('CLOC') {
             steps { catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') { sh 'ci/quality.sh cloc' } }
         }

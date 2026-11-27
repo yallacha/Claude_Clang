@@ -456,3 +456,42 @@ TEST(CoreUnit, RightOutputOnlyChangeIsRecorded)
     EXPECT_EQ(3U, event_count(core));
     EXPECT_EQ(ECL_LOCK, status_of(core).lock[ECL_DOOR_RIGHT]);
 }
+
+/**
+ * @brief   [목적] 기록된 이벤트가 정의된 필드(event_id, timestamp_s, lock, state, reason_code, command_rejected, validity)를 평가 결과대로 담는다.
+ * @tracing SRQ-FUN-029, SRQ-FUN-027
+ * @par Input   t=0.010 정상 평가 후 t=0.020 LEFT lock 명령(속도 입력 INVALID로 validity 확인)
+ * @par Procedure  이벤트 조회 후 필드를 비교한다.
+ * @par Expected   두 번째 이벤트: event_id=2, timestamp_s=0.020, lock=LOCK/RELEASE, state=DEGRADED, reason=RC_DRIVER_LOCK, validity[SPEED]=INVALID
+ * @authored_by   Claude Sonnet 5.5 (claude-sonnet-5-5)
+ * @authored_at   2026-11-27
+ * @requested_by  Heechang Jang
+ * @review_status Not Reviewed
+ * @reviewed_by   -
+ * @reviewed_at   -
+ */
+TEST(CoreUnit, EventContainsDefinedFields)
+{
+    ecl_core_t core = fresh_core();
+    ecl_snapshot_t s = ecl_normal_snapshot(0.010);
+    ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
+    s = ecl_normal_snapshot(0.020);
+    s.vehicle_speed_kph = -1.0;
+    s.command.present = 0;
+    ecl_set_command(&s, ECL_SIDE_LEFT, ECL_ACTION_LOCK, ECL_SRC_AVN);
+    s.vehicle_speed_kph = 0.0;
+    s.adult_present = 9;
+    ASSERT_EQ(RET_OK, ecl_core_evaluate(&core, &s));
+    ecl_event_t ev[4] = {};
+    size_t n = 0;
+    ASSERT_EQ(RET_OK, ecl_core_query_events(&core, ev, 4, &n));
+    ASSERT_EQ(2U, n);
+    EXPECT_EQ(2U, ev[1].event_id);
+    EXPECT_DOUBLE_EQ(0.020, ev[1].timestamp_s);
+    EXPECT_EQ(ECL_LOCK, ev[1].lock[ECL_DOOR_LEFT]);
+    EXPECT_EQ(ECL_RELEASE, ev[1].lock[ECL_DOOR_RIGHT]);
+    EXPECT_EQ(ECL_STATE_DEGRADED, ev[1].state);
+    EXPECT_EQ(RC_DRIVER_LOCK, ev[1].reason_code);
+    EXPECT_EQ(0, ev[1].command_rejected);
+    EXPECT_EQ(ECL_INVALID, ev[1].validity[ECL_SIG_ADULT]);
+}

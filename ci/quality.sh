@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # 소스코드 품질 기준 검사 (CLAUDE.md 2장). 개발과 CI 모두 ClaudeCLangBuild 이미지 안에서 실행한다.
 #
-# 사용법: ci/quality.sh <cppcheck|lizard|cloc|tdd|unit|integration|all>
+# 사용법: ci/quality.sh <cppcheck|lizard|cloc|tdd|unit|integration|system|all>
 #   cppcheck     CppCheck 위반 0건 (억제 사용 금지)
 #   lizard       순환복잡도 10 이하, 함수 라인수 80 이하
 #   cloc         코드/주석 라인 집계 (주석률 보고)
 #   tdd          tests/tdd      : 테스트 성공률 100% (별도 결과/커버리지, 게이트는 성공률)
 #   unit         tests/unit     : MC/DC 100%, 테스트 성공률 100%
 #   integration  tests/integration : 함수 커버리지 100%, 테스트 성공률 100%
+#   system       tests/system : 테스트 성공률 100% (요구사항 커버리지 100%는 docs/system-test 의 추적성 검사로 판정)
 #   all          위 전체 (하나라도 실패하면 종료 코드 1)
 #
 # 레이아웃: 프로덕션 src/(*.c), 헤더 include/ 또는 src/, 테스트 tests/{tdd,unit,integration,system}/(*.cpp)
@@ -73,6 +74,9 @@ gate_run() {
     if [ "$metric" != "-" ]; then
         python3 ci/check_coverage.py "$out/summary.json" "$metric" "$min" || { fail "$name: $metric 커버리지 $min% 미달"; return; }
     fi
+    if [ "$name" = "system" ]; then
+        python3 ci/check_system_coverage.py 100 || { fail "system: 요구사항 커버리지 100% 미달"; return; }
+    fi
     # Jenkins 커버리지 플러그인용 Cobertura 변환
     lcov_cobertura "$out/lcov.info" --output "$out/cobertura.xml" >/dev/null 2>&1 || true
     pass "$name"
@@ -85,11 +89,13 @@ case "${1:-all}" in
     tdd)         gate_run tdd         coverage.sh tdd         -         ;;
     unit)        gate_run unit        mcdc.sh     unit        mcdc      ;;
     integration) gate_run integration coverage.sh integration functions ;;
+    system)      gate_run system      coverage.sh system      -         ;;
     all)         step_cppcheck; step_lizard; step_cloc
                  gate_run tdd         coverage.sh tdd         -
                  gate_run unit        mcdc.sh     unit        mcdc
-                 gate_run integration coverage.sh integration functions ;;
-    *) echo "사용법: $0 <cppcheck|lizard|cloc|tdd|unit|integration|all>" >&2; exit 2 ;;
+                 gate_run integration coverage.sh integration functions
+                 gate_run system      coverage.sh system      - ;;
+    *) echo "사용법: $0 <cppcheck|lizard|cloc|tdd|unit|integration|system|all>" >&2; exit 2 ;;
 esac
 
 exit "$FAILED"

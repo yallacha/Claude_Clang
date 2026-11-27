@@ -13,4 +13,4 @@
 | UC-07 | 시동 OFF 초기화 | Vehicle | ignition_on=FALSE이면 두 도어가 RELEASE이고 state=OFF이다(상위 규칙 없을 때). | SRQ-FUN-014~016, 036 |
 | UC-08 | 입력 이상 처리 | Vehicle | 형식·범위 오류는 INVALID, 0.200 s 초과 미갱신은 DEGRADED(출력 유지), sensor_fault는 FAULT(출력 유지). | SSR-005~010, 016~026, 029, 030, 032~034, 037 |
 | UC-09 | 상태 조회와 표시 | Display | 상태 응답이 출력, state, 입력 유효성, 이유코드, override를 제공한다. 직렬화 실패는 HTTP 500이다. | SRQ-FUN-022~025 |
-| UC-10 | 이벤트 이력 조회 | Display | 최근 100건이 ID 오름차순으로 조회되고 재기동 후 0건이다. | SRQ-FUN-027~030, 037, SRQ-LIM-001, 003 |
+| UC-10 | 이벤트 이력 조회 | Display | 최근 100건이 ID 오름차순으로 조회되고 재기동 후 0건이다. | SRQ-FUN-027~030, 037, 039, SRQ-LIM-001, 003 |

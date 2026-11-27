@@ -21,7 +21,7 @@ ecl_cmd_result_t interpret(int present, int side, int action, int source)
 
 /**
  * @brief   [목적] 모든 필드가 등록 범위이면 명령을 유효로 판정한다.
- * @tracing SRQ-FUN-001, ecl_cmd_interpret
+ * @tracing SRQ-FUN-001, ecl_cmd_interpret, SSR-034
  * @par Input   present=1, side=LEFT, action=LOCK, source=AVN
  * @par Procedure  1. 유효 필드로 ecl_cmd_interpret 호출.
  * @par Expected   valid=1, rejected=0, side/action/source가 입력과 같다.

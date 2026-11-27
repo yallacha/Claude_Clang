@@ -2,7 +2,7 @@
 
 | 항목 | 값 |
 |---|---|
-| 문서 ID / 버전 | SRS-ECL-001 / 0.3 (Draft, 재리뷰 대기) |
+| 문서 ID / 버전 | SRS-ECL-001 / 0.4 (Draft, 재리뷰 대기, 변경 이력은 문서 끝) |
 | 베이스라인 | BL-SWR-1.0 — 이터레이션 게이트에서 사용자가 승인할 때 부여(`docs/decisions.md` DEC-006) |
 | 입력(상위) 문서 | `OEM/OEM-SWR-001_OEM SW 요구사항 사양서.docx` (Rev 1.0, BL-OEM-1.0) — 저장소에는 포함하지 않는다(DEC-005) |
 | 프로세스 | A-SPICE SWE.1 (`requirements-analysis` 스킬) |
@@ -20,6 +20,8 @@
 
 **단위**: 시각과 기간은 초(s)로 쓴다(OEM 원문의 300 ms = 0.300 s, 200 ms = 0.200 s, 100 ms = 0.100 s, 10 ms = 0.010 s). 속도는 km/h.
 
+**시각 비교 규칙**: `timestamp_s`와 `source_timestamp_s`는 초 단위 실수(double)이다. 0.010 s 격자 값의 부동소수점 표현 오차로 경계 판정이 어긋나지 않도록, 한계값과의 비교는 허용오차 1e-9 s를 둔다. 시각 차이 ≤ 한계 + 1e-9 s이면 "한계 이하"(경계 포함)이고, 한계 + 1e-9 s를 넘으면 "초과"이다. 1e-9 s 이하의 차이를 구분하는 입력은 요구 범위 밖이다. 이 규칙은 0.200 s(SSR-007, 008), 1.0 s(SSR-004), 10.0 s(SRQ-FUN-017, 034, 035)의 경계 판정에 모두 적용하며, 경계 시험값은 이 표현(십진 리터럴의 double)으로 주입한다.
+
 ## 0. 용어집
 
 | 용어 | 정의 |
@@ -28,11 +30,11 @@
 | 스냅샷 | OEM-IF-001~003, 007~009 신호와 `source_timestamp_s`, 선택적 운전자 명령(IF-004)을 가진 입력 묶음. |
 | 평가주기 / 평가 | 0.010 s(`OI-003`). 평가 = 평가 호출 1회이며 같은 호출의 반환 시점에 출력·상태·이벤트를 확정한다. OEM의 "첫/다음 평가주기"는 입력을 처음 처리하는 평가이다. |
 | 필수 입력 | IF-001(vehicle_speed_kph, gear, source_timestamp_s), IF-002(crash_status), IF-003(두 접근위험), IF-007(fire, overtemperature, adult), IF-008(두 ISOFIX), IF-009(ignition_on, sensor_fault)의 모든 신호. |
-| 유효 / INVALID / STALE | 유효 = 형식·범위 검사(SSR-005) 통과 + fresh. INVALID = 형식·범위 위반 또는 누락. STALE = freshness 기준 초과(SSR-007, 008). |
+| 유효 / INVALID / STALE | 유효 = 형식·범위 검사(SSR-005) 통과 + fresh. INVALID = 형식·범위 위반 또는 누락. STALE = freshness 기준 초과(SSR-007, 008). 한 신호가 INVALID이면서 STALE 조건에도 해당하면 **INVALID가 우선**한다(STALE로 보고되는 것은 유효였던 신호뿐이다). |
 | 직전 확정 출력 | 직전 평가가 확정한 lock_left, lock_right. 첫 평가 전에는 RELEASE(SRQ-FUN-026). |
 | 정지 / 이동 | 정지 = 유효한 vehicle_speed_kph < 3.0. 이동 = 유효한 vehicle_speed_kph ≥ 3.0. (속도 INVALID는 SSR-023에 따라 이동으로 처리) |
 | 정상 입력 | 필수 입력이 모두 유효이고 ignition_on=TRUE, crash_status=NONE, sensor_fault=FALSE, 접근위험·ISOFIX·fire·overtemperature·adult가 모두 FALSE인 입력(속도와 운전자 명령은 시험이 지정). |
-| input_validity 값 | 입력별 `VALID`, `INVALID`, `STALE` 중 하나. |
+| input_validity 값 | "필수 입력"의 13개 신호(speed, gear, source_timestamp_s, crash, approach 좌·우, fire, overtemperature, adult, isofix 좌·우, ignition_on, sensor_fault) 각각에 대해 `VALID`, `INVALID`, `STALE` 중 하나. source_timestamp_s가 INVALID이면 그 신호는 INVALID로 보고하고(SSR-006), 같은 평가의 유효였던 다른 신호는 STALE로 보고한다(SSR-029). |
 | override 상태 | 도어별 boolean 상태 필드 `override`(state 열거와 별개). |
 | 유효한 명령 | SRQ-FUN-007에서 거절되지 않은 운전자 명령. |
 | 적용 | 우선순위 표(SSR-027)에서 해당 규칙이 도어의 출력으로 선택됨. |
@@ -67,7 +69,7 @@
 
 | ID | 요구사항 | 수용 기준 | 근거 | 우선/상태 | 검증 | 상위(OEM) |
 |---|---|---|---|---|---|---|
-| SRQ-FUN-009 | SW는 유효한 vehicle_speed_kph가 3.0 이상인 평가에서 자동 잠금이 적용되면 좌, 우 출력을 LOCK으로 해야 한다. | 속도 2.9 → 3.0으로 바뀐 평가에서 두 출력이 LOCK이다(3.0 포함). | OEM-FR-002, SSR-027, `OI-006` | M/Draft | UT, ST | OEM-FR-002 |
+| SRQ-FUN-009 | SW는 유효한 vehicle_speed_kph가 3.0 이상인 평가에서 자동 잠금이 적용되면 좌, 우 출력을 LOCK으로 해야 한다. | 정상 입력(속도 제외)에서 속도 2.9 → 3.0으로 바뀐 평가에서 두 출력이 LOCK이다(3.0 포함). 정상 입력이 아닌 경우(예: P6 강제 해제가 성립)는 SSR-027의 우선순위를 따른다. | OEM-FR-002, SSR-027, `OI-006` | M/Draft | UT, ST | OEM-FR-002 |
 | SRQ-FUN-010 | SW는 fire_detected, overtemperature_detected, adult_present 중 하나가 유효한 TRUE이면 강제 해제가 적용될 때 접근위험으로 LOCK이 선택되지 않은 도어의 출력을 RELEASE로 해야 한다. | 정상 입력(접근위험 없음)에서 세 입력 각각을 단독 주입한 평가에서 두 출력이 RELEASE. 접근위험이 있는 도어는 LOCK 유지(SSR-027 P5 > P6). | OEM-FR-005, SSR-027, `OI-006` | M/Draft | UT, ST | OEM-FR-005 |
 | SRQ-FUN-011 | SW는 강제 해제 시 이유코드를 입력별로 `RC_FIRE`, `RC_OVERTEMP`, `RC_ADULT_PRESENT`로 기록해야 한다. | 단독 주입 시 해당 코드가 reason_code. | OEM-FR-005 | M/Draft | UT, ST | OEM-FR-005 |
 | SRQ-FUN-032 | SW는 fire_detected, overtemperature_detected, adult_present 중 둘 이상이 동시에 TRUE이면 fire, overtemperature, adult 순서로 하나의 이유코드를 기록해야 한다. | fire+adult 동시 주입 시 `RC_FIRE`. | 파생, `OI-016` | L/Draft | UT | OEM-FR-005 |
@@ -81,7 +83,7 @@
 
 | ID | 요구사항 | 수용 기준 | 근거 | 우선/상태 | 검증 | 상위(OEM) |
 |---|---|---|---|---|---|---|
-| SRQ-FUN-017 | SW는 접근위험으로 해제가 억제된 도어에 같은 해제 명령이 첫 억제 시각부터 10.0 s 이하(경계 포함)에 재입력되면 override로 판정해야 한다. | 경과 10.0 s 입력은 override, 10.01 s 입력은 override가 아니다. | OEM-FR-003, SSR-015, `OI-011`, `OI-015` | M/Draft | UT, ST | OEM-FR-003 |
+| SRQ-FUN-017 | SW는 접근위험으로 해제가 억제된 도어에 같은 해제 명령이 첫 억제 시각부터 10.0 s 이하(경계 포함)에 재입력되면 override로 판정해야 한다. | 경과 10.0 s 입력은 override, 10.01 s 입력은 override가 아니다(경계는 시각 비교 규칙 적용). | OEM-FR-003, SSR-015, `OI-011`, `OI-015` | M/Draft | UT, ST | OEM-FR-003 |
 | SRQ-FUN-018 | SW는 override로 판정되어도 접근위험 TRUE인 도어의 출력을 LOCK으로 유지해야 한다. | override 판정 평가에서 해당 도어 출력이 LOCK이다. | SSR-012와 일관, `OI-011` (OEM은 효과 미정의) | H/Draft | UT, ST | OEM-FR-003, OEM-SR-002 |
 | SRQ-FUN-019 | SW는 override 판정 시 해당 도어의 override 상태를 TRUE로 해야 한다. | override 판정 평가에서 상태 조회의 도어별 override=TRUE. | OEM-FR-003, `OI-011` | M/Draft | UT, ST | OEM-FR-003 |
 | SRQ-FUN-033 | SW는 override 판정 시 이유코드를 `RC_OVERRIDE_ACK`로 기록해야 한다. | override 판정 평가의 reason_code=`RC_OVERRIDE_ACK`. | OEM-FR-003 | M/Draft | UT, ST | OEM-FR-003 |
@@ -105,10 +107,10 @@
 
 | ID | 요구사항 | 수용 기준 | 근거 | 우선/상태 | 검증 | 상위(OEM) |
 |---|---|---|---|---|---|---|
-| SRQ-FUN-027 | SW는 평가 결과의 lock_left, lock_right, state, reason_code 중 하나라도 직전 평가와 다르거나 command_rejected가 TRUE인 평가마다 이벤트를 1건 기록해야 한다. | 직전 평가의 기준값은 첫 평가에서 초기값(RELEASE, RELEASE, OFF, RC_NONE)이다. 변화 없는 평가는 기록하지 않고 변화가 있는 평가는 정확히 1건 기록. | OEM-NFR-002, `OI-016`, `OI-021` | M/Draft | UT, IT | OEM-NFR-002 |
+| SRQ-FUN-027 | SW는 평가 결과의 lock_left, lock_right, state, reason_code 중 하나라도 직전 평가와 다르거나 command_rejected가 TRUE인 평가마다 이벤트를 1건 기록해야 한다. | 직전 평가의 기준값은 첫 평가에서 초기값(RELEASE, RELEASE, OFF, RC_NONE)이다. 변화 없는 평가는 기록하지 않고 변화가 있는 평가는 정확히 1건 기록한다. 단 이벤트 ID가 포화된 뒤(SRQ-FUN-037)의 평가는 변화가 있어도 기록하지 않는다(예외). | OEM-NFR-002, `OI-016`, `OI-021`, `OI-022` | M/Draft | UT, IT | OEM-NFR-002 |
 | SRQ-FUN-028 | SW는 이벤트 ID를 1부터 시작하여 기록마다 1씩 증가하는 64비트 부호 없는 정수로 부여해야 한다(최댓값 2^64−1 이후는 SRQ-FUN-037). | n번째 이벤트의 ID가 n이다. | OEM-NFR-002 | M/Draft | UT | OEM-NFR-002 |
-| SRQ-FUN-037 | SW는 이벤트 ID가 2^64−1인 이벤트를 기록한 뒤에는 새 이벤트를 기록하지 않아야 한다(ID 유일성 유지). | 시험용 접근자(SRQ-FUN-039)로 카운터를 2^64−2로 설정한 뒤 이벤트 2건을 발생시키면 ID 2^64−1인 1건만 보존되고 두 번째는 기록되지 않는다. | 파생(경계 정의), SRQ-FUN-028, SRQ-FUN-030 | L/Draft | UT | OEM-NFR-002 |
-| SRQ-FUN-039 | SW는 시험 빌드에서 이벤트 ID 카운터의 값을 설정하는 시험용 접근자를 제공해야 한다. | 시험 빌드에서 카운터 설정 후 다음 이벤트 ID가 설정값+1이다. 제품 빌드에는 접근자가 없다(INS). | 파생(SRQ-FUN-037 시험 가능성) | L/Draft | UT, INS | OEM-NFR-002 |
+| SRQ-FUN-037 | SW는 이벤트 ID가 2^64−1인 이벤트를 기록한 뒤에는 새 이벤트를 기록하지 않아야 한다(ID 유일성 유지). 기록하지 않은 사실을 알리는 필드·이유코드는 두지 않는다(`OI-022`). | 시험용 접근자(SRQ-FUN-039)로 카운터를 2^64−2로 설정한 뒤 이벤트 2건을 발생시키면 ID 2^64−1인 1건만 보존되고 두 번째는 기록되지 않는다. 이후 조회 결과는 ID 오름차순이며 중복 ID가 없다. | 파생(경계 정의), SRQ-FUN-028, SRQ-FUN-030, `OI-022` | L/Draft | UT | OEM-NFR-002 |
+| SRQ-FUN-039 | SW는 시험 빌드에서 이벤트 ID 카운터의 값(마지막으로 부여한 ID)을 설정하는 시험용 접근자를 제공해야 한다. 시험 빌드는 전처리 매크로 `ECL_TEST_BUILD`를 정의한 빌드이다. | 설정 범위는 0~2^64−1이다. 설정값 v < 2^64−1이면 다음 이벤트 ID가 v+1이고, v = 2^64−1이면 이후 이벤트를 기록하지 않는다(SRQ-FUN-037). NULL 인자는 `RET_ERR_NULL`(SRQ-QUA-REL-001 적용). `ECL_TEST_BUILD`를 정의하지 않은 제품 빌드의 소스·목적 파일에 접근자가 없다(INS: 접근자 정의가 `#ifdef ECL_TEST_BUILD` 안에만 있고 제품 빌드 목적 파일의 심볼 목록에 없음). | 파생(SRQ-FUN-037 시험 가능성) | L/Draft | UT, INS | OEM-NFR-002 |
 | SRQ-FUN-029 | SW는 이벤트에 event_id, timestamp_s, lock_left, lock_right, state, reason_code, command_rejected, 입력별 input_validity 필드만 포함해야 한다. | 이벤트 구조체의 필드가 이 목록과 정확히 같다. | OEM-NFR-002, `OI-016` | M/Draft | UT, INS | OEM-NFR-002 |
 | SRQ-FUN-030 | SW는 이벤트 조회 시 보존된 최신 최대 100건을 event_id 오름차순으로 반환해야 한다. | 101건 기록 후 조회 결과가 ID 2~101의 100건이고 오름차순. | OEM-NFR-002 수용기준, `OI-021` | M/Draft | UT, IT, ST | OEM-NFR-002 |
 
@@ -127,7 +129,7 @@
 |---|---|---|---|---|---|---|
 | SRQ-LIM-001 | SW는 이벤트를 프로세스 메모리에만 보존해야 한다. | 프로세스 재기동 후 이벤트 조회 결과가 0건. | OEM-NFR-002 | M/Draft | UT, IT, ST | OEM-NFR-002 |
 | SRQ-LIM-003 | SW는 이벤트가 100건을 넘으면 가장 오래된 1건을 삭제해야 한다. | 101번째 기록 후 보존 건수 100, 가장 오래된 ID가 2. | OEM-NFR-002 | M/Draft | UT, IT | OEM-NFR-002 |
-| SRQ-LIM-002 | SW는 평가 호출이 0.010 s 간격으로 이루어진다는 호출 계약을 전제로 SSR의 시간 규칙을 평가해야 한다. | 모든 시험 벡터의 평가 호출 간격이 0.010 s이다. | 파생(OEM-SR-001 0.300 s, OEM-SR-003 0.100 s 충족), `OI-003` | H/Draft | INS, ST | OEM-SR-001, OEM-SR-003 |
+| SRQ-LIM-002 | SW는 SSR의 시간 규칙(0.200 s, 1.0 s, 10.0 s 경계)을 평가 호출 횟수가 아니라 호출자가 주입한 `timestamp_s`·`source_timestamp_s`의 차이로 판정해야 한다. 평가 호출이 0.010 s 간격으로 이루어진다는 호출 계약은 호출자의 책임이다(`OI-003`). | (1) INS: SW 소스에 호출 횟수를 세어 시간으로 환산하는 코드가 없고, 시간 규칙 판정에 쓰이는 값이 `timestamp_s`, `source_timestamp_s`와 그 저장값뿐이다(코드 검토). (2) ST: 호출 계약의 준수 확인 — SW 시험이 쓰는 벡터 V의 평가 호출 간격이 0.010 s(±1e-9 s)이다. 이는 시험 하네스가 계약을 지켰다는 전제 확인이며 SW의 합격 기준은 (1)이다. | 파생(OEM-SR-001 0.300 s, OEM-SR-003 0.100 s 충족), `OI-003` | H/Draft | INS, ST | OEM-SR-001, OEM-SR-003 |
 | SRQ-LIM-004 | SW는 평가 호출 1회를 0.010 s 미만에 완료해야 한다. | ST 시험 벡터 전체에서 최악 평가 시간이 0.010 s 미만. | 파생, `OI-003` | H/Draft | ST | OEM-SR-001, OEM-SR-003 |
 
 ### 2.3 제약사항 (Constraint)
@@ -136,7 +138,9 @@
 |---|---|---|---|---|---|
 | SRQ-CON-001 | 제품 코어는 C 언어(C11)로 `src/`에 구현해야 한다. **가정: OEM 편차 확인 대기** | 사용자 확정 요구사항 변경(`docs/decisions.md` CR-001), OEM §3 실행 환경(Python 3.12)에서 변경, `OI-002` | H/Draft | BLD, INS | OEM §3 (변경) |
 | SRQ-CON-008 | 표시 계층 서버는 C 언어(C11)로 `src/`에 구현해야 한다. | CR-001, `OI-017` | M/Draft | BLD, INS | OEM §3 표시/조작 |
-| SRQ-CON-009 | 표시 계층은 HTML을 C 코드로 생성하여 응답하고 클라이언트 측 스크립트(JavaScript)를 포함하지 않아야 한다. | OEM §3 표시/조작, `OI-017`, DEC-007 | M/Draft | INS, ST(Web) | OEM §3 표시/조작 |
+| SRQ-CON-009 | 표시 계층은 HTML을 C 코드로 생성하여 응답하고 클라이언트 측 스크립트(JavaScript)를 포함하지 않아야 한다. | OEM §3 표시/조작, `OI-017`, DEC-007, DEC-010 | M/Draft | INS, ST(Web) | OEM §3 표시/조작 |
+
+**SRQ-CON-009 검사 절차와 합격 기준**: (1) INS — `src/`의 표시 계층 소스 외에 `.js`, `.html` 등 비-C 소스 파일이 저장소에 없고, 표시 계층 소스에 `<script`, `javascript:`, `on<이벤트>=` 속성(`onclick=` 등), 외부 스크립트 참조(`src=`가 스크립트를 가리키는 경우)를 만드는 문자열이 0건이다(대소문자 구분 없는 문자열 검색). (2) ST(Web) — 시험이 얻은 모든 응답 본문(정상, 거절, HTTP 500 응답 포함)에 같은 문자열이 0건이다. 두 검사 모두 0건이면 합격, 1건이라도 있으면 불합격이다.
 | SRQ-CON-002 | SW는 시각을 호출자가 주입한 `timestamp_s`로만 얻어야 한다. | OEM-NFR-001, OEM-IF-004(요청 시각 = 스냅샷 timestamp_s), `OI-003` | H/Draft | INS, UT | OEM-NFR-001, OEM-IF-004 |
 | SRQ-CON-005 | SW는 시스템 시계를 읽지 않아야 한다. | OEM-NFR-001(결정론) | H/Draft | INS | OEM-NFR-001 |
 | SRQ-CON-003 | SW는 영상, 음성 원본과 개인 식별자를 입력으로 받지 않아야 한다. | OEM §2 프로젝트 제약 | M/Draft | INS, UT | OEM-NFR-002 |
@@ -161,7 +165,7 @@
 
 ## 부록 A. 이유코드 (reason_code = priority_reason)
 
-한 평가에는 하나의 reason_code를 기록한다. 선택은 SSR-027 우선순위 표에서 출력을 선택한 규칙의 코드이며(P1이 가장 높음), 같은 규칙의 다중 코드는 표의 값 오름차순이다. `RC_CRASH_PENDING_TIMEOUT`은 타임아웃을 처음 판정한 평가에서만 기록한다.
+한 평가에는 하나의 reason_code를 기록한다. 선택은 SSR-027 우선순위 표에서 출력을 선택한 규칙의 코드이며(P1이 가장 높음), 같은 규칙의 다중 코드는 표의 값 오름차순이다. 예외 두 가지: (1) 접근위험 도어가 P2~P4 유지 중에도 LOCK이면 그 평가의 이유코드는 P2~P4 코드이다(SSR-027 표 아래 설명). (2) `RC_CRASH_PENDING_TIMEOUT`은 PENDING 타임아웃을 처음 판정한 평가에서, P1·P2·P4(STALE, crash/ignition INVALID)가 성립하지 않을 때, 출력을 선택한 규칙(P5~P10)과 무관하게 기록한다(SSR-031). 그 평가의 출력은 P5~P10 일반 중재 결과이다(SSR-004).
 
 | 코드 | 값 | 발생 조건 | 선택 우선순위(SSR-027) |
 |---|---|---|---|
@@ -190,4 +194,11 @@
 ## 부록 B. 시험 입력 벡터 기준
 
 - **B-1 거절 명령 벡터**: side/action/source 각각에 대해 누락, 범위 밖 값, 미등록 enum, 잘못된 형식(문자열 대신 숫자 등)을 단일 결함으로 주입한 전 조합(정상 나머지 필드).
-- **B-2 결정론 벡터 V**: `docs/test-vectors/vector-v.csv` (23행, 평가 간격 0.010 s). 정지·정상, 이동 시작과 해제 거부, 접근위험 억제·override, 화재, ISOFIX, 시동 OFF/ON, 충돌 PENDING→CONFIRMED→NONE, sensor_fault, stale 경계(0.200/0.210), 범위 밖 속도, 명령 거절을 포함한다. 기준 해시값은 입력이 아니라 출력이므로 고정하지 않고 "1,000회 해시가 모두 같음"으로 판정한다.
+- **B-2 결정론 벡터 V**: `docs/test-vectors/vector-v.csv` (23행, 평가 간격 0.010 s). 정지·정상, 이동 시작과 해제 거부, 접근위험 억제·override, 화재, ISOFIX, 시동 OFF/ON, 충돌 PENDING→CONFIRMED→NONE, sensor_fault, stale 경계(0.200/0.210), 범위 밖 속도, 명령 거절을 포함한다. 기준 해시값은 입력이 아니라 출력이므로 고정하지 않고 "1,000회 해시가 모두 같음"으로 판정한다. 벡터 V는 CSV에 기대값 열이 없으며 결정론(해시 동일성)만 판정한다. 각 규칙의 출력·state·이유코드 기대값은 UT/ST의 개별 시험이 판정한다. PENDING 1.000/1.010 s 경계와 override 10.0/10.01 s 경계는 벡터 V에 없고 UT 전용 시험(UT가 `timestamp_s`를 직접 구성)에서 다룬다.
+
+## 변경 이력
+
+| 버전 | 일자 | 변경 |
+|---|---|---|
+| 0.3 | 2026-11-27 | 4차 재리뷰(requirements-review-004) 조치본 |
+| 0.4 | 2026-11-27 | 5차 재리뷰(requirements-review-005) 열린 결함 18건 조치: 시각 비교 규칙(허용오차 1e-9 s), INVALID/STALE 우선순위와 input_validity 대상, SRQ-FUN-009 전제, SRQ-FUN-027·037·039 정리(포화·시험 빌드), SRQ-LIM-002 주체 변경, SRQ-CON-009 검사 절차, 부록 A 예외, B-2 보강 (ID 변경 없음) |

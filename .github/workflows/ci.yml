@@ -64,6 +64,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work claudeclangbuild:latest ci/quality.sh integration
 
+      - name: System tests (요구사항 커버리지 100%)
+        if: ${{ !cancelled() }}
+        run: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work claudeclangbuild:latest ci/quality.sh system
+
       - name: CLOC
         if: ${{ !cancelled() }}
         run: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work claudeclangbuild:latest ci/quality.sh cloc
