@@ -1,0 +1,49 @@
+jenkins:
+  systemMessage: "Claude_Clang CI (Jenkins LTS)"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "${JENKINS_ADMIN_PASSWORD:-admin}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+  location:
+    url: "http://localhost:8080/"
+
+security:
+  gitHostKeyVerificationConfiguration:
+    sshHostKeyVerificationStrategy: "noHostKeyVerificationStrategy"
+
+jobs:
+  - script: >
+      multibranchPipelineJob('Claude_Clang') {
+        displayName('Claude_Clang')
+        branchSources {
+          github {
+            id('claude-clang-github')
+            repoOwner('yallacha')
+            repository('Claude_Clang')
+          }
+        }
+        factory {
+          workflowBranchProjectFactory {
+            scriptPath('Jenkinsfile')
+          }
+        }
+        orphanedItemStrategy {
+          discardOldItems {
+            numToKeep(20)
+          }
+        }
+        // GitHub 변경을 폴링으로 감지한다 (이 PC는 외부에서 접근할 수 없으므로 웹훅 미사용)
+        triggers {
+          periodicFolderTrigger {
+            interval('2m')
+          }
+        }
+      }

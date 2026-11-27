@@ -1,0 +1,9 @@
+# build outputs and reports
+build/
+*.profraw
+*.profdata
+
+# local secrets / overrides
+.env
+docker/jenkins/.env
+.claude/settings.local.json

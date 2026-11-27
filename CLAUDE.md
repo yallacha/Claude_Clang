@@ -4,7 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-This repository (`Claude_Clang`, remote `https://github.com/yallacha/Claude_Clang.git`) currently holds no source code. The build system, Docker image, Jenkins CI and hooks described below are **defined policy but not yet created**; when one is created, replace its "(예정)" mark and add the concrete commands (build, lint, test, running a single test) to this file.
+This repository (`Claude_Clang`, remote `https://github.com/yallacha/Claude_Clang.git`) currently holds no product source code; only the process (skills, agents), build image, CI and hook infrastructure exist. Production code is **C** (`src/*.c`, headers in `include/` or `src/`), tests are **C++ with Google Test/GMock** (`tests/{tdd,unit,integration,system}/`).
+
+Common commands (run inside the build image on the host, see section 4):
+```
+docker build -t claudeclangbuild:latest -f docker/build/Dockerfile docker/build   # build image (once)
+docker run --rm -v "$(pwd -W):/work" -w /work claudeclangbuild:latest ci/quality.sh all   # all quality gates
+docker run --rm -v "$(pwd -W):/work" -w /work claudeclangbuild:latest ci/quality.sh unit  # one gate: cppcheck|lizard|cloc|tdd|unit|integration
+```
+Run a single gtest case: build with `.claude/skills/unit-test/scripts/coverage.sh "<src>" "<test>" out` and run `out/test_bin --gtest_filter=Suite.Case`.
 
 ## 1. 개발 절차
 
@@ -40,8 +48,10 @@ This repository (`Claude_Clang`, remote `https://github.com/yallacha/Claude_Clan
 | 순환복잡도 | 함수당 10 이하 (Lizard) |
 | 함수 라인수 | 함수당 80라인 이하 (Lizard) |
 
-- **Lizard 검사는 구현이 끝날 때 Hook으로 실행**한다. (예정: `.claude/settings.json`의 hook으로 구성)
+- **Lizard 검사는 구현이 끝날 때 Hook으로 실행**한다. (`.claude/settings.json`의 `Stop` hook → `.claude/hooks/lizard-check.sh`. 위반 시 응답 종료를 막고 수정하게 한다. 소스가 없거나 Docker/이미지가 없으면 건너뛴다. 최종 게이트는 CI)
 - 주석률은 CLOC으로 측정한다.
+- 모든 검사는 `ci/quality.sh`가 실행하며 개발과 CI가 같은 스크립트를 쓴다. 대상 소스가 없으면 `SKIPPED`로 통과하고, 소스가 있는데 테스트가 없으면 실패한다.
+- 함수 리턴 규칙(모든 함수 리턴값, return 한 번)은 **프로덕션 코드** 대상이며 gtest `TEST()` 본문은 예외이다. (`implementation` 스킬)
 
 ### 주석 (Doxygen, Human in the Loop)
 
@@ -64,7 +74,7 @@ This repository (`Claude_Clang`, remote `https://github.com/yallacha/Claude_Clan
  *   @reviewed_at    2026-11-28      (미완료 시 -)
  */
 ```
-- 위 태그는 커스텀 태그이므로 Doxyfile의 `ALIASES`에 등록한다. (예정)
+- 위 태그는 커스텀 태그이므로 Doxyfile의 `ALIASES`에 등록한다. (Doxyfile은 아직 없음 — 첫 소스 작성 시 함께 만든다)
 - 사용자가 리뷰하기 전에는 `Not Reviewed`로 두고, **사용자가 리뷰를 완료했다고 알려줄 때만** `Reviewed`로 바꾼다. 임의로 바꾸지 않는다.
 - 사람이 코드를 수정하면 해당 주석의 리뷰 상태를 `Not Reviewed`로 되돌린다.
 - 단위/통합 테스트 함수 주석(목적·입력값·절차·예상 출력값)은 각 테스트 스킬의 규칙을 따른다.
@@ -79,14 +89,14 @@ This repository (`Claude_Clang`, remote `https://github.com/yallacha/Claude_Clan
 
 ## 4. 개발 환경
 
-개발 빌드와 CI 빌드는 **동일한 Docker 이미지 `ClaudeCLangBuild`**를 사용한다. (예정: `Dockerfile`로 빌드) 로컬에서 직접 설치한 도구로 빌드·검증한 결과는 인정하지 않는다.
+개발 빌드와 CI 빌드는 **동일한 Docker 이미지 `ClaudeCLangBuild`**를 사용한다. Dockerfile은 `docker/build/Dockerfile`이며, **Docker 이미지 이름은 소문자만 허용되므로 실제 이름은 `claudeclangbuild:latest`**이다. 로컬에서 직접 설치한 도구로 빌드·검증한 결과는 인정하지 않는다.
 
 | 용도 | 도구 |
 |---|---|
-| 컴파일러 | Clang 18 이상 (최신 안정 버전) |
-| 빌드 도구 | **CMake + Ninja** (권장: 이식성, `compile_commands.json` 생성으로 CppCheck/clang-tidy 연동, CTest로 테스트 실행) |
-| 정적 분석 | CppCheck |
-| 테스트 프레임워크 | Google Test / GMock (CMake `FetchContent`로 버전 고정) |
+| 컴파일러 | Clang 20 (apt.llvm.org, 이미지의 `LLVM_VERSION` 인자로 변경. 18 이상 필수) |
+| 빌드 도구 | **CMake + Ninja** (`CMakeLists.txt`, `compile_commands.json` 생성). 품질 게이트의 테스트·커버리지 빌드는 `ci/quality.sh`가 수행 |
+| 정적 분석 | CppCheck 2.13 |
+| 테스트 프레임워크 | Google Test / GMock (이미지의 Ubuntu 패키지 `libgtest-dev`, `libgmock-dev`) |
 | 커버리지 | LLVM (`llvm-cov`, `llvm-profdata`, MC/DC는 `-fcoverage-mcdc`, 스크립트: `.claude/skills/unit-test/scripts/`) |
 | 순환복잡도/함수 라인수 | Lizard |
 | 주석률 | CLOC |
@@ -98,7 +108,9 @@ This repository (`Claude_Clang`, remote `https://github.com/yallacha/Claude_Clan
 
 ## 5. CI 환경
 
-- CI는 **Jenkins 안정화(LTS) 버전**을 이 PC의 Docker 위에서 실행한다. 포트는 **8080**. (예정)
-- 필요한 플러그인을 이미지에 포함해 설치 완료 상태로 제공하고, **테스트·정적 분석·커버리지·메트릭 결과를 Jenkins 플러그인 화면에서 확인**할 수 있어야 한다. (예정, 계획 플러그인: Git, Pipeline, Docker Pipeline, Warnings Next Generation(CppCheck), xUnit/JUnit, Code Coverage API/Coverage, Gitflow 브랜치용 Multibranch/GitHub Branch Source)
-- Jenkins 파이프라인은 `ClaudeCLangBuild` 이미지에서 빌드 → 테스트 → 커버리지 → CppCheck → Lizard → CLOC을 실행하고, 품질 기준 미달 시 실패 처리한다.
-- 에이전트 컨테이너(`ClaudeCLangBuild`)와 Jenkins 컨테이너는 분리한다.
+- CI는 **Jenkins 안정화(LTS)**(`jenkins/jenkins:lts-jdk21`)를 이 PC의 Docker 위에서 실행한다. 포트 **8080**, `127.0.0.1`에만 바인딩(이 PC에서만 접속). 시작: `docker compose up -d --build`, 중지: `docker compose down`.
+- 관리자 계정은 `admin` / `admin`이다. 로컬 전용이며, 변경하려면 `JENKINS_ADMIN_PASSWORD` 환경변수로 컨테이너를 다시 시작한다.
+- 설정은 코드로 관리한다: `docker/jenkins/{Dockerfile,plugins.txt,casc.yaml}` (JCasC로 계정과 멀티브랜치 잡 `Claude_Clang` 자동 생성). GitHub 저장소는 공개이므로 자격 증명 없이 **2분 폴링**으로 브랜치/PR 변경을 감지한다. 비공개로 바꾸면 자격 증명을 추가해야 한다.
+- 설치된 플러그인(`plugins.txt`): Pipeline, Docker Pipeline, Git/GitHub Branch Source, Configuration as Code, Job DSL, JUnit(테스트 결과), Warnings Next Generation(CppCheck), Coverage(Cobertura), HTML Publisher 등.
+- `Jenkinsfile`은 `claudeclangbuild` 이미지 안에서 Build → CppCheck → Lizard → TDD → Unit(MC/DC 100%) → Integration(함수 100%) → CLOC을 실행하고, 기준 미달 시 실패 처리한다. 결과는 JUnit·Warnings·Coverage 화면과 아티팩트(`build/reports/`)에서 확인한다.
+- Jenkins는 호스트 Docker 데몬(`/var/run/docker.sock`)으로 빌드 컨테이너를 띄운다. 빌드 이미지는 호스트에서 먼저 빌드해 두어야 한다.
