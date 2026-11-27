@@ -1,0 +1,9 @@
+prev: RR, LL, LR, RL
+crash: 0, 1, 2
+fault: 0, 1
+approach_left: 0, 1
+fire: 0, 1
+isofix_left: 0, 1
+speed: 0.0, 3.0
+ign: 1, 0
+cmd: none, unlock, lock
