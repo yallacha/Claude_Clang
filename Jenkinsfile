@@ -1,6 +1,11 @@
-// CI 파이프라인: 빌드 + 소스코드 품질 기준(CLAUDE.md 2장). 하나라도 실패하면 PR을 완료할 수 없다.
+// 내부(로컬) Jenkins 파이프라인: GitHub Actions(.github/workflows/ci.yml)와 같은 품질 검사를 주기적으로 실행한다.
+// PR 완료 조건의 기준 CI 는 GitHub Actions 이며, Jenkins 는 이 PC 에서 같은 기준을 상시 재검증한다.
 // 모든 단계는 개발과 동일한 claudeclangbuild 이미지 안에서 실행한다.
 pipeline {
+    triggers {
+        // 변경이 없어도 6시간마다 정기 실행한다 (브랜치별).
+        cron('H H/6 * * *')
+    }
     agent {
         docker {
             // Jenkins 워크스페이스는 root 소유이므로 컨테이너도 root 로 실행한다(플러그인 기본값).

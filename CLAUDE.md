@@ -83,7 +83,7 @@ Run a single gtest case: build with `.claude/skills/unit-test/scripts/coverage.s
 
 - 브랜치는 **Gitflow**를 따른다: `main`(릴리스), `develop`(통합), `feature/*`, `release/*`, `hotfix/*`.
 - 이터레이션 작업은 `develop`에서 분기한 `feature/*` 브랜치에서 수행한다.
-- PR은 **CI를 통과해야만 완료**한다. CI 통과 조건은 빌드 성공 + 2장의 소스코드 품질 기준 전체 충족이다.
+- PR은 **CI(GitHub Actions, `.github/workflows/ci.yml`)를 통과해야만 완료**한다. CI 통과 조건은 빌드 성공 + 2장의 소스코드 품질 기준 전체 충족이다.
 - 이터레이션 완료에 대한 사용자 확인 후에 PR을 만든다. (1장)
 - (참고: 초기 세팅 커밋은 Gitflow 도입 전에 `main`에 직접 푸시했다. 이후부터 적용한다.)
 
@@ -108,9 +108,9 @@ Run a single gtest case: build with `.claude/skills/unit-test/scripts/coverage.s
 
 ## 5. CI 환경
 
-- CI는 **Jenkins 안정화(LTS)**(`jenkins/jenkins:lts-jdk21`)를 이 PC의 Docker 위에서 실행한다. 포트 **8080**, `127.0.0.1`에만 바인딩(이 PC에서만 접속). 시작: `docker compose up -d --build`, 중지: `docker compose down`.
+- **기준 CI는 GitHub Actions**(`.github/workflows/ci.yml`)이다. push(`main`/`develop`/`feature/**`/`release/**`/`hotfix/**`), PR, 수동 실행(`workflow_dispatch`)에서 동작하며, `docker/build/Dockerfile`로 `claudeclangbuild` 이미지를 빌드해 그 안에서 Build → CppCheck → Lizard → TDD → Unit(MC/DC 100%) → Integration(함수 100%) → CLOC을 실행한다. 결과는 아티팩트 `reports`(`build/reports/`)로 올린다. 브랜치 보호에서 `CI / quality`를 필수 체크로 지정한다.
+- **내부 Jenkins도 같은 검사를 주기적으로 실행**한다. `Jenkinsfile`의 `cron('H H/6 * * *')`으로 6시간마다(브랜치별) 정기 실행하고, 멀티브랜치 스캔(15분 폴링)으로 새 브랜치/변경도 감지한다. Jenkins는 `jenkins/jenkins:lts-jdk21`을 이 PC의 Docker 위에서 실행하며 포트 **8080**, `127.0.0.1`에만 바인딩한다. 시작: `docker compose up -d --build`, 중지: `docker compose down`.
 - 관리자 계정은 `admin` / `admin`이다. 로컬 전용이며, 변경하려면 `JENKINS_ADMIN_PASSWORD` 환경변수로 컨테이너를 다시 시작한다.
-- 설정은 코드로 관리한다: `docker/jenkins/{Dockerfile,plugins.txt,casc.yaml}` (JCasC로 계정과 멀티브랜치 잡 `Claude_Clang` 자동 생성). GitHub 저장소는 공개이므로 자격 증명 없이 **15분 폴링**(익명 GitHub API 한도 때문. 더 빠른 감지가 필요하면 읽기 전용 토큰을 등록)으로 브랜치/PR 변경을 감지한다. 비공개로 바꾸면 자격 증명을 추가해야 한다.
-- 설치된 플러그인(`plugins.txt`): Pipeline, Docker Pipeline, Git/GitHub Branch Source, Configuration as Code, Job DSL, JUnit(테스트 결과), Warnings Next Generation(CppCheck), Coverage(Cobertura), HTML Publisher 등.
-- `Jenkinsfile`은 `claudeclangbuild` 이미지 안에서 Build → CppCheck → Lizard → TDD → Unit(MC/DC 100%) → Integration(함수 100%) → CLOC을 실행하고, 기준 미달 시 실패 처리한다. 결과는 JUnit·Warnings·Coverage 화면과 아티팩트(`build/reports/`)에서 확인한다.
+- Jenkins 설정은 코드로 관리한다: `docker/jenkins/{Dockerfile,plugins.txt,casc.yaml}` (JCasC로 계정과 멀티브랜치 잡 `Claude_Clang` 자동 생성). GitHub 저장소는 공개이므로 자격 증명 없이 폴링한다(익명 API 한도 때문. 비공개로 바꾸면 자격 증명을 추가해야 한다).
+- 설치된 플러그인(`plugins.txt`): Pipeline, Docker Pipeline, Git/GitHub Branch Source, Configuration as Code, Job DSL, JUnit(테스트 결과), Warnings Next Generation(CppCheck), Coverage(Cobertura), HTML Publisher 등. Jenkins 결과는 JUnit·Warnings·Coverage 화면과 아티팩트에서 확인한다.
 - Jenkins는 호스트 Docker 데몬(`/var/run/docker.sock`)으로 빌드 컨테이너를 띄운다. 빌드 이미지는 호스트에서 먼저 빌드해 두어야 한다.
