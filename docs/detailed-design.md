@@ -156,5 +156,5 @@
 8. **틱에서도 PENDING 타임아웃을 판정한다**: 틱은 마지막 스냅샷의 crash_status가 계속된다고 보고 같은 `build_inputs`를 거치므로, PENDING 1.0 s 초과의 첫 판정이 틱 평가에서 일어날 수 있고 그 평가에서 `RC_CRASH_PENDING_TIMEOUT`을 기록한다(SSR-031).
 9. **crash_status CONFIRMED는 freshness와 무관하게 형식이 유효하면(VALID 또는 STALE) 인정**하여 두 도어를 RELEASE한다(요구사항 트랙 DEC-011 (1), SSR-001). 다른 신호의 오래됨이 충돌 해제를 막지 않는다.
 10. **첫 수신 전 틱**: 입력이 한 번도 없었으므로 `now_s − 0.0 > 0.200 s`이면 STALE이고 13개 신호를 모두 STALE로 보고한다(수신한 값이 없는 상태에서 "유효였던 신호"가 없으므로 SRS 정의의 예외이다. SRS 보완 필요 시 `OI-004`와 함께 처리).
-11. **틱 STALE 기준의 합집합**: 틱은 수신 당시의 지연(timestamp_s − source_timestamp_s)을 유지한 채 마지막 수신 후 경과를 본다. 따라서 수신 시점에 이미 STALE이던 스냅샷은 다음 틱에서도 STALE이고, 마지막 수신 후 0.200 s를 넘기면 STALE이다(두 기준의 합집합). SSR-008 본문에 이 합집합을 반영할지는 사용자 결정 대기이다(요구사항 트랙 DEC-011 (5)).
+11. **틱 STALE 기준의 합집합**: 틱은 수신 당시의 지연(timestamp_s − source_timestamp_s)을 유지한 채 마지막 수신 후 경과를 본다. 따라서 수신 시점에 이미 STALE이던 스냅샷은 다음 틱에서도 STALE이고, 마지막 수신 후 0.200 s를 넘기면 STALE이다(두 기준의 합집합). 이 합집합은 SSR-008 본문에 반영되었다(DEC-014, 요구사항 트랙 DEC-011 (5)의 결정).
 12. 프로덕션 코드의 `(void)memset/memcpy/strcpy/strcat`은 표준 라이브러리가 돌려주는 포인터를 쓰지 않아서이며 반환값으로 판단할 정보가 없다. `ecl_ser.c`의 `strcpy/strcat`은 `key[ECL_SER_KEY_MAX]`(40)에 접두어 9자와 신호 이름(최대 13자)만 쓰므로 길이가 컴파일 시점에 22자 이하로 정해져 있다.
